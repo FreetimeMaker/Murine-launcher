@@ -45,6 +45,9 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.LauncherApps;
+import android.content.pm.LauncherUserInfo;
+import android.os.Bundle;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
@@ -147,6 +150,8 @@ public class PrivateProfileManager extends UserProfileManager {
     private PrivateSpaceSettingsButton mPrivateSpaceSettingsButton;
     @Nullable
     private ImageButton mVisibilityButton;
+    @Nullable
+    private Boolean mCachedEntrypointHidden;
     private Boolean mIsHideSettingReadable = null;
     @Nullable
     private ConstraintLayout mFloatingMaskView;
@@ -222,7 +227,9 @@ public class PrivateProfileManager extends UserProfileManager {
     }
 
     public boolean isPrivateSpaceHiddenWhenLocked() {
-        if (isHideSettingReadable()) try {
+        Boolean fromLauncherUserInfo = getHideWhenLockedFromUserConfig();
+        if (fromLauncherUserInfo != null) return fromLauncherUserInfo;
+        if (isHideSettingReadable(fromLauncherUserInfo)) try {
             return SettingsCache.INSTANCE.get(mAllApps.getContext()).getValue(PRIVATE_SPACE_HIDE_WHEN_LOCKED_URI, 0);
         } catch (Throwable t) {}
         // System setting is not readable on this ROM; use launcher preference
@@ -230,10 +237,39 @@ public class PrivateProfileManager extends UserProfileManager {
     }
 
     /**
-     * Checks whether the system setting hide_privatespace_entry_point is readable.
-     * Result is cached for the lifetime of this instance (app session).
+     * Hide-when-locked state from LauncherUserInfo, or null when the system does not report it.
+     * Added in Baklava, and the only path readable by a launcher that is not a system app.
+     */
+    @Nullable
+    private Boolean getHideWhenLockedFromUserConfig() {
+        if (!Utilities.ATLEAST_BAKLAVA) return null;
+        if (mCachedEntrypointHidden != null) return mCachedEntrypointHidden;
+        try {
+            UserHandle user = getProfileUser();
+            LauncherUserInfo info = user == null ? null : mAllApps.getContext()
+                    .getSystemService(LauncherApps.class).getLauncherUserInfo(user);
+            Bundle config = info == null ? null : info.getUserConfig();
+            // The key is absent when add_launcher_user_config is off
+            if (config != null && config.containsKey(LauncherUserInfo.PRIVATE_SPACE_ENTRYPOINT_HIDDEN))
+                return mCachedEntrypointHidden = config.getBoolean(LauncherUserInfo.PRIVATE_SPACE_ENTRYPOINT_HIDDEN);
+        } catch (Throwable t) {}
+        return null;
+    }
+
+    /**
+     * Whether the hide-when-locked state is readable from the system, rather than owned by the
+     * launcher preference
      */
     boolean isHideSettingReadable() {
+        // Not cached: null only means "no profile to ask about yet", so one created later counts
+        return isHideSettingReadable(getHideWhenLockedFromUserConfig());
+    }
+
+    /**
+     * As above, for a caller that already read {@link #getHideWhenLockedFromUserConfig()}
+     */
+    private boolean isHideSettingReadable(@Nullable Boolean fromUserConfig) {
+        if (fromUserConfig != null) return true;
         if (mIsHideSettingReadable == null) try {
             android.provider.Settings.Secure.getInt(
                     mAllApps.getContext().getContentResolver(),
@@ -284,6 +320,8 @@ public class PrivateProfileManager extends UserProfileManager {
      */
     public void reset() {
         Trace.beginSection("PrivateProfileManager#reset");
+        // Re-read the hide state on every reset
+        mCachedEntrypointHidden = null;
         // Ensure the state of the header view is what it should be before animating.
         updateView();
         getMainRecyclerView().setChildAttachedConsumer(null);
@@ -642,6 +680,8 @@ public class PrivateProfileManager extends UserProfileManager {
         AllAppsRecyclerView allAppsRecyclerView = mAllApps.getActiveRecyclerView();
         List<BaseAllAppsAdapter.AdapterItem> allAppsAdapterItems =
                 mAllApps.getActiveRecyclerView().getApps().getAdapterItems();
+        // Read once: it cannot change mid-animation
+        final boolean isHidden = isPrivateSpaceHidden();
         ValueAnimator alphaAnim = ObjectAnimator.ofFloat(from, to);
         alphaAnim.setDuration(APP_OPACITY_DURATION)
                 .setStartDelay(isExpanding ? APP_OPACITY_DELAY : NO_DELAY);
@@ -655,8 +695,7 @@ public class PrivateProfileManager extends UserProfileManager {
                     // When not hidden: Fade all PS items except header.
                     // When hidden: Fade all items.
                     if (isPrivateSpaceItem(currentItem) &&
-                            (currentItem.viewType != VIEW_TYPE_PRIVATE_SPACE_HEADER
-                                    || isPrivateSpaceHidden())) {
+                            (currentItem.viewType != VIEW_TYPE_PRIVATE_SPACE_HEADER || isHidden)) {
                         RecyclerView.ViewHolder viewHolder =
                                 allAppsRecyclerView.findViewHolderForAdapterPosition(i);
                         if (viewHolder != null) {
