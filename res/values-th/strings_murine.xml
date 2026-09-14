@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">แอปที่ซ่อนไว้</string>
+    <string name="pref_category_hidden_locked_apps_title">แอปที่ซ่อนไว้และป้องกันไว้</string>
     <string name="pref_category_hidden_apps_summary">ซ่อนแอปจากลิ้นชักแอป</string>
     <string name="hidden_apps_label">ซ่อนอยู่</string>
     <string name="locked_apps_label">ป้องกันไว้</string>

@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">隱藏的應用程式</string>
+    <string name="pref_category_hidden_locked_apps_title">隱藏和已保護的應用程式</string>
     <string name="pref_category_hidden_apps_summary">從應用程式抽屜中隱藏應用程式</string>
     <string name="hidden_apps_label">已隱藏</string>
     <string name="locked_apps_label">已保護</string>

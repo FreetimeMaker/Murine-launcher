@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">Aplicacions ocultes</string>
+    <string name="pref_category_hidden_locked_apps_title">Aplicacions ocultes i protegides</string>
     <string name="pref_category_hidden_apps_summary">Amaga aplicacions del calaix d\'aplicacions</string>
     <string name="hidden_apps_label">Ocultes</string>
     <string name="locked_apps_label">Protegides</string>

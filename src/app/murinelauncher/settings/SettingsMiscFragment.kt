@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.preference.Preference
 import app.murinelauncher.backup.BackupHelper
 import app.murinelauncher.settings.common.AbstractSettingsFragment
+import app.murinelauncher.settings.hiddenapps.AppLock
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.util.DisplayController
@@ -24,6 +25,7 @@ import kotlin.system.exitProcess
 public final class SettingsMiscFragment: AbstractSettingsFragment() {
 
     companion object {
+        const val PREF_HIDDEN_APPS: String = "pref_hidden_apps"
         const val PREF_DEFAULT_LAUNCHER: String = "pref_default_launcher"
         const val BACKUP_EXPORT: String = "pref_backup_export"
         const val BACKUP_IMPORT: String = "pref_backup_import"
@@ -75,6 +77,10 @@ public final class SettingsMiscFragment: AbstractSettingsFragment() {
     override fun initPreference(preference: Preference, info: DisplayController.Info): Boolean {
         val context = requireContext()
         when (preference.key) {
+            PREF_HIDDEN_APPS -> {
+                if (AppLock.hasApi) preference.setTitle(R.string.pref_category_hidden_locked_apps_title)
+                return true
+            }
             PREF_DEFAULT_LAUNCHER -> {
                 val pm = context.packageManager
                 val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)

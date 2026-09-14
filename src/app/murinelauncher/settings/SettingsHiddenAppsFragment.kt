@@ -45,7 +45,9 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
 
     override fun getPreferenceScreenResId() = R.xml.murine_prefs_hidden_apps
 
-    override fun getPreferenceTitle(): Int = R.string.pref_category_hidden_apps_title
+    override fun getPreferenceTitle(): Int =
+        if (AppLock.hasApi) R.string.pref_category_hidden_locked_apps_title
+        else R.string.pref_category_hidden_apps_title
 
     override fun initPreference(preference: Preference, info: DisplayController.Info) = true
 

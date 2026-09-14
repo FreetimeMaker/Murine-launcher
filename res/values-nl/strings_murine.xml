@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">Verborgen apps</string>
+    <string name="pref_category_hidden_locked_apps_title">Verborgen en beveiligde apps</string>
     <string name="pref_category_hidden_apps_summary">Apps verbergen uit het app-overzicht</string>
     <string name="hidden_apps_label">Verborgen</string>
     <string name="locked_apps_label">Beveiligd</string>

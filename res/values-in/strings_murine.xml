@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">Aplikasi tersembunyi</string>
+    <string name="pref_category_hidden_locked_apps_title">Aplikasi tersembunyi dan terlindungi</string>
     <string name="pref_category_hidden_apps_summary">Sembunyikan aplikasi dari laci aplikasi</string>
     <string name="hidden_apps_label">Tersembunyi</string>
     <string name="locked_apps_label">Terlindungi</string>

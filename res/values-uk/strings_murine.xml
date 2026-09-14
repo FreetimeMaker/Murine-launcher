@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">Приховані додатки</string>
+    <string name="pref_category_hidden_locked_apps_title">Приховані та захищені додатки</string>
     <string name="pref_category_hidden_apps_summary">Приховати додатки з меню додатків</string>
     <string name="hidden_apps_label">Приховані</string>
     <string name="locked_apps_label">Захищені</string>

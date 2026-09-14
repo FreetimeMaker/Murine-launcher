@@ -141,6 +141,7 @@
 
     <!-- Hidden apps -->
     <string name="pref_category_hidden_apps_title">Ausgeblendete Apps</string>
+    <string name="pref_category_hidden_locked_apps_title">Ausgeblendete und geschützte Apps</string>
     <string name="pref_category_hidden_apps_summary">Apps aus der App-Übersicht ausblenden</string>
     <string name="hidden_apps_label">Ausgeblendet</string>
     <string name="locked_apps_label">Geschützt</string>
