@@ -30,6 +30,9 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
     companion object {
         /** Murine Launcher will always be hidden from itself **/
         const val HIDE_SELF = true
+
+        /** Tab shown but not usable, e.g. App Lock without the LOCK_APPS permission. */
+        private const val DISABLED_TAB_ALPHA = 0.4f
     }
 
     private var hiddenComponents: MutableSet<String> = mutableSetOf()
@@ -38,6 +41,7 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
     private var searchQuery = ""
     private var tabAll: Button? = null
     private var tabHidden: Button? = null
+    private var tabLocked: Button? = null
 
     override fun getPreferenceScreenResId() = R.xml.murine_prefs_hidden_apps
 
@@ -85,6 +89,14 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
             text = getString(R.string.hidden_apps_label)
             isSelected = false
         }
+        // Shown whenever the framework has the API, but greyed out without the LOCK_APPS permission
+        tabLocked = header.findViewById<Button>(R.id.filter_locked).apply {
+            text = getString(R.string.locked_apps_label)
+            isSelected = false
+            visibility = if (AppLock.hasApi) View.VISIBLE else View.GONE
+            isEnabled = AppLock.isAvailable(context)
+            alpha = if (isEnabled) 1f else DISABLED_TAB_ALPHA
+        }
 
         val wrapper = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
@@ -119,6 +131,7 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
 
         tabAll?.setOnClickListener { selectTab(0) }
         tabHidden?.setOnClickListener { selectTab(1) }
+        tabLocked?.setOnClickListener { selectTab(2) }
     }
 
     private fun loadApps() {
@@ -133,7 +146,7 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
             .filter { !HIDE_SELF || it.componentName.packageName != selfPackage }
             .sortedBy { (it.label ?: it.componentName.shortClassName).toString().lowercase() }
 
-        // Master gate: check if app lock is supported
+        // Master gate: check if querying/setting/unsetting app lock is supported
         val appLockAvailable = AppLock.isAvailable(ctx)
 
         Executors.MODEL_EXECUTOR.execute {
@@ -159,18 +172,23 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
                         this.title = title
                         this.icon = icon
                         isAppHidden = hiddenComponents.contains(name)
+                        isAppLocked = name in locked
                         if (name in lockable) {
-                            isAppLocked = name in locked
                             onLockClick = {
                                 AppLock.requestSetAppLock(ctx, name.substringBefore('/'))
                             }
                         }
                         setOnPreferenceClickListener {
-                            val wasHidden = hiddenComponents.contains(name)
-                            if (wasHidden) hiddenComponents.remove(name) else hiddenComponents.add(name)
-                            isAppHidden = !wasHidden
-                            dirty = true
-                            applyFilter()
+                            // Protected tab: the row toggles the lock instead of the visibility.
+                            if (lockedMode) {
+                                onLockClick?.invoke()
+                            } else {
+                                val wasHidden = hiddenComponents.contains(name)
+                                if (wasHidden) hiddenComponents.remove(name) else hiddenComponents.add(name)
+                                isAppHidden = !wasHidden
+                                dirty = true
+                                applyFilter()
+                            }
                             true
                         }
                     }
@@ -185,14 +203,21 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
         currentTab = tab
         tabAll?.isSelected = tab == 0
         tabHidden?.isSelected = tab == 1
+        tabLocked?.isSelected = tab == 2
         applyFilter()
     }
 
     private fun applyFilter() {
         val screen = preferenceScreen ?: return
+        screen.findPreference<Preference>("search_within_hidden_apps")?.isVisible = currentTab != 2
         for (i in 0 until screen.preferenceCount) {
             val pref = screen.getPreference(i) as? HiddenAppPreference ?: continue
-            val matchesTab = currentTab != 1 || pref.isAppHidden
+            pref.lockedMode = currentTab == 2
+            val matchesTab = when (currentTab) {
+                1 -> pref.isAppHidden
+                2 -> pref.isAppLocked
+                else -> true
+            }
             val matchesSearch = searchQuery.isEmpty() ||
                 pref.title?.toString()?.contains(searchQuery, ignoreCase = true) == true
             pref.isVisible = matchesTab && matchesSearch
@@ -209,6 +234,8 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
             val pref = screen.getPreference(i) as? HiddenAppPreference ?: continue
             if (pref.onLockClick != null) pref.isAppLocked = AppLock.isLocked(ctx, pref.key.substringBefore('/'))
         }
+        // Lock state feeds the Protected tab's filter, so rows must be re-evaluated too.
+        applyFilter()
     }
 
     override fun onPause() {

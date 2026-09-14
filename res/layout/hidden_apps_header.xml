@@ -58,6 +58,19 @@
                 android:textColor="@color/murine_all_apps_tab_text"
                 android:textSize="14sp"
                 style="?android:attr/borderlessButtonStyle" />
+
+            <!-- Shown only when the framework has the App Lock API; see AppLock.hasApi -->
+            <Button
+                android:id="@+id/filter_locked"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:layout_marginStart="@dimen/all_apps_tabs_button_horizontal_padding"
+                android:background="@drawable/all_apps_tabs_background"
+                android:textColor="@color/murine_all_apps_tab_text"
+                android:textSize="14sp"
+                style="?android:attr/borderlessButtonStyle" />
         </LinearLayout>
     </HorizontalScrollView>
 </LinearLayout>

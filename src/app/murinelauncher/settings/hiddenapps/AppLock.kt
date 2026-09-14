@@ -21,17 +21,18 @@ object AppLock {
     private const val TAG = "MurineAppLock"
 
     /**
-     * Feature probe: App Lock API support.
+     * Feature probe: App Lock API support;
+     * Enough to decide whether to show App Lock settings UI at all; everything else needs [isAvailable].
      */
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.CINNAMON_BUN)
-    private val hasAppLockApi = runCatching { ApplicationInfo::class.java.getField("isAppLockSupported") }.isSuccess
+    @JvmField @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.CINNAMON_BUN)
+    val hasApi = runCatching { ApplicationInfo::class.java.getField("isAppLockSupported") }.isSuccess
 
     /**
      * True only when the framework has the App Lock API and the LOCK_APPS permission is held;
      * The launcher must be set as default home app.
      */
     @JvmStatic
-    fun isAvailable(context: Context): Boolean = hasAppLockApi &&
+    fun isAvailable(context: Context): Boolean = hasApi &&
             context.checkSelfPermission(Manifest.permission.LOCK_APPS) == PackageManager.PERMISSION_GRANTED
 
     /**
