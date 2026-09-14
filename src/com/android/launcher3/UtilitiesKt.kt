@@ -16,9 +16,45 @@
 
 package com.android.launcher3
 
+import android.content.Context
+import android.content.Intent
+import android.content.IntentSender
+import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
+import java.util.concurrent.Executor
+
+/**
+ * [IntentSender.sendIntent] with options, leveraging the pre-Baklava overload in older versions.
+ *
+ * Baklava added `sendIntent(context, code, intent, requiredPermission, options, executor, onFinished)`;
+ * before it the only overload taking options was `@hide` method, which throws [NoSuchMethodError] for anything targeting V or later.
+ */
+@JvmOverloads
+fun IntentSender.sendIntentCompat(
+    context: Context?,
+    code: Int = 0,
+    intent: Intent? = null,
+    requiredPermission: String? = null,
+    options: Bundle? = null,
+    executor: Executor? = null,
+    onFinished: IntentSender.OnFinished? = null,
+) {
+    if (Utilities.ATLEAST_BAKLAVA) {
+        sendIntent(context, code, intent, requiredPermission, options, executor, onFinished)
+        return
+    }
+    val callback =
+        if (executor == null || onFinished == null) onFinished
+        else IntentSender.OnFinished { sender, i, resultCode, resultData, resultExtras ->
+            executor.execute {
+                onFinished.onSendFinished(sender, i, resultCode, resultData, resultExtras)
+            }
+        }
+    sendIntent(context, code, intent, callback, null,
+        requiredPermission, options)
+}
 
 object UtilitiesKt {
 

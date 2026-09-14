@@ -17,6 +17,7 @@
 package com.android.launcher3.util;
 
 import static com.android.launcher3.LauncherConstants.ActivityCodes.REQUEST_HOME_ROLE;
+import static com.android.launcher3.UtilitiesKtKt.sendIntentCompat;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityOptions;
@@ -32,6 +33,7 @@ import android.content.pm.LauncherUserInfo;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -205,7 +207,8 @@ public class ApiWrapper {
     public void launchPrivateSpaceSettings(Context context) {
         if (!Utilities.ATLEAST_V) return;
         else try {
-            getPrivateSpaceSettingsIntentSender().sendIntent(context, 0, null, null, null);
+            Bundle options = Utilities.allowBGLaunchIfVisible(ActivityOptions.makeBasic()).toBundle();
+            sendIntentCompat(getPrivateSpaceSettingsIntentSender(), context, 0, null, null, options);
         } catch (Exception e) {
             Log.w("ApiWrapper", "Failed to launch private space settings", e);
         }

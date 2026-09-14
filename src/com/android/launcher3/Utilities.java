@@ -662,6 +662,20 @@ public final class Utilities {
     }
 
     /**
+     * Utility method to allow background activity launch only while this app has a visible window
+     */
+    public static ActivityOptions allowBGLaunchIfVisible(ActivityOptions options) {
+        if (ATLEAST_BAKLAVA) {
+            options.setPendingIntentBackgroundActivityStartMode(
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE);
+        } else if (ATLEAST_U) {
+            options.setPendingIntentBackgroundActivityStartMode(
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+        }
+        return options;
+    }
+
+    /**
      * Utility method to know if a device's primary language is English.
      */
     public static boolean isEnglishLanguage(Context context) {

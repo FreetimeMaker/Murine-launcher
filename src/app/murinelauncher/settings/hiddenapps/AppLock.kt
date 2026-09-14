@@ -63,7 +63,7 @@ object AppLock {
         try {
             val pendingIntent = context.packageManager.getEnableAppLockIntentForPackage(
                 packageName, !isLocked(context, packageName))
-            val options = Utilities.allowBGLaunch(ActivityOptions.makeBasic()).toBundle()
+            val options = Utilities.allowBGLaunchIfVisible(ActivityOptions.makeBasic()).toBundle()
             pendingIntent?.send(null, 0, null, null, null, null, options)
                 ?: Log.w(TAG, "No App Lock PendingIntent for $packageName")
         } catch (e: Throwable) {
