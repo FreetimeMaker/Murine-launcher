@@ -3,6 +3,7 @@ package app.murinelauncher.widget.appinfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
+import android.os.Process
 import android.os.UserHandle
 import android.util.AttributeSet
 import android.util.Pair
@@ -23,6 +24,7 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.views.AbstractSlideInView
+import app.murinelauncher.settings.hiddenapps.AppLock
 
 /**
  * Bottom sheet showing app information: package, version, last update, source, and icon pack;
@@ -31,6 +33,7 @@ import com.android.launcher3.views.AbstractSlideInView
 class AppInfoBottomSheet @JvmOverloads constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) : AbstractSlideInView<BaseActivity?>(context, attrs, defStyleAttr) {
 
     private var mItemInfo: ItemInfo? = null
+    private var mRefreshAppLock: (() -> Unit)? = null
 
     init { setWillNotDraw(false) }
 
@@ -71,6 +74,7 @@ class AppInfoBottomSheet @JvmOverloads constructor(context: Context?, attrs: Att
                 context, mItemInfo, Utilities.getViewBounds(v), null
             )
         }
+        if (itemInfo.user == Process.myUserHandle()) setUpAppLockButton(componentName?.packageName)
 
         if (componentName != null) {
             val activity = BaseActivity.fromContext<BaseActivity>(context)
@@ -88,6 +92,29 @@ class AppInfoBottomSheet @JvmOverloads constructor(context: Context?, attrs: Att
         attachToContainer()
         mIsOpen = false
         animateOpen()
+    }
+
+    /**
+     * Shows the lock toggle when the native App Lock is available and supports this app.
+     */
+    private fun setUpAppLockButton(packageName: String?) {
+        if (packageName == null || !AppLock.isAvailable(context)) return
+        val appInfo = AppLock.getAppLockInfo(context, packageName) ?: return
+        if (!AppLock.isSupported(appInfo)) return
+        val button = findViewById<ImageButton>(R.id.app_lock_button)
+        mRefreshAppLock = {
+            button.setImageResource(if (AppLock.isLocked(context, packageName))
+                R.drawable.ic_app_lock_locked else R.drawable.ic_app_lock_unlocked)
+        }
+        mRefreshAppLock?.invoke()
+        button.visibility = VISIBLE
+        button.setOnClickListener { AppLock.requestSetAppLock(context, packageName) }
+    }
+
+    override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        // The lock toggle authenticates in a system window; re-read the state once it is gone
+        if (hasWindowFocus) mRefreshAppLock?.invoke()
     }
 
     override fun onDetachedFromWindow() {

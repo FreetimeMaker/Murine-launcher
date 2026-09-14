@@ -39,13 +39,28 @@
                 android:id="@+id/edit_label_button"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_toStartOf="@+id/settings_button"
+                android:layout_toStartOf="@+id/app_lock_button"
                 android:layout_centerVertical="true"
                 android:src="@drawable/gm_edit_24"
                 android:tint="?android:attr/textColorPrimary"
                 android:background="@drawable/murine_search_btn_ripple"
                 android:contentDescription="@string/app_info_edit_label"
                 android:scaleType="centerInside"
+                android:padding="12dp"/>
+
+            <!-- Shown only when the native App Lock supports this app -->
+            <ImageButton
+                android:id="@+id/app_lock_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_toStartOf="@+id/settings_button"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_app_lock_unlocked"
+                android:tint="?android:attr/textColorPrimary"
+                android:background="@drawable/murine_search_btn_ripple"
+                android:contentDescription="@string/locked_apps_label"
+                android:scaleType="centerInside"
+                android:visibility="gone"
                 android:padding="12dp"/>
 
             <ImageButton

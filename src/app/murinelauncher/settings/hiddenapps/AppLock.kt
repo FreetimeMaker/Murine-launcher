@@ -47,13 +47,18 @@ object AppLock {
     @JvmStatic @SuppressLint("NewApi")
     fun isLocked(appInfo: ApplicationInfo): Boolean = runCatching { appInfo.isAppLockEnabled }.getOrDefault(false)
 
-    /** Without GET_APP_LOCK_INFO the isAppLock* fields come back unset (false). */
+    @JvmStatic
+    fun isLocked(context: Context, packageName: String): Boolean = getAppLockInfo(context, packageName)?.let { isLocked(it) } ?: false
+
+    /**
+     * Without GET_APP_LOCK_INFO the isAppLock* fields come back unset (false).
+     */
     @JvmStatic @SuppressLint("NewApi")
-    fun isLocked(context: Context, packageName: String): Boolean = runCatching {
-        if (!Utilities.ATLEAST_T) return false
-        isLocked(context.packageManager.getApplicationInfo(packageName,
-            PackageManager.ApplicationInfoFlags.of(PackageManager.GET_APP_LOCK_INFO)))
-    }.getOrDefault(false)
+    fun getAppLockInfo(context: Context, packageName: String): ApplicationInfo? = runCatching {
+        if (!Utilities.ATLEAST_T) return null
+        context.packageManager.getApplicationInfo(packageName,
+            PackageManager.ApplicationInfoFlags.of(PackageManager.GET_APP_LOCK_INFO))
+    }.getOrNull()
 
     /**
      * Toggles App Lock for [packageName], the system asks for user authentication.
