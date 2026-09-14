@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">隐藏的应用</string>
     <string name="pref_category_hidden_apps_summary">从应用抽屉中隐藏应用</string>
     <string name="hidden_apps_label">已隐藏</string>
+    <string name="locked_apps_label">已保护</string>
     <string name="hidden_apps_search_hint">搜索应用...</string>
     <string name="pref_search_within_hidden_title">在隐藏的应用中搜索</string>
     <string name="pref_search_within_hidden_summary">应用抽屉搜索可找到隐藏的应用</string>

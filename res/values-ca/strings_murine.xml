@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">Aplicacions ocultes</string>
     <string name="pref_category_hidden_apps_summary">Amaga aplicacions del calaix d\'aplicacions</string>
     <string name="hidden_apps_label">Ocultes</string>
+    <string name="locked_apps_label">Protegides</string>
     <string name="hidden_apps_search_hint">Cerca aplicacions...</string>
     <string name="pref_search_within_hidden_title">Cerca entre les aplicacions ocultes</string>
     <string name="pref_search_within_hidden_summary">La cerca del calaix troba les aplicacions ocultes</string>

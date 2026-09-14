@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">非表示のアプリ</string>
     <string name="pref_category_hidden_apps_summary">アプリ一覧からアプリを非表示にします</string>
     <string name="hidden_apps_label">非表示</string>
+    <string name="locked_apps_label">保護済み</string>
     <string name="hidden_apps_search_hint">アプリを検索...</string>
     <string name="pref_search_within_hidden_title">非表示のアプリも検索</string>
     <string name="pref_search_within_hidden_summary">アプリ一覧の検索で非表示のアプリも見つかります</string>

@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">برنامه‌های پنهان</string>
     <string name="pref_category_hidden_apps_summary">پنهان کردن برنامه‌ها از کشوی برنامه‌ها</string>
     <string name="hidden_apps_label">پنهان</string>
+    <string name="locked_apps_label">محافظت‌شده</string>
     <string name="hidden_apps_search_hint">جستجوی برنامه‌ها...</string>
     <string name="pref_search_within_hidden_title">جستجو در برنامه‌های پنهان</string>
     <string name="pref_search_within_hidden_summary">جستجوی کشوی برنامه‌ها برنامه‌های پنهان را پیدا می‌کند</string>

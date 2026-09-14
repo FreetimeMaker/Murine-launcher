@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">Applications masquées</string>
     <string name="pref_category_hidden_apps_summary">Masquer des applications du tiroir</string>
     <string name="hidden_apps_label">Masquées</string>
+    <string name="locked_apps_label">Protégées</string>
     <string name="hidden_apps_search_hint">Rechercher des applications...</string>
     <string name="pref_search_within_hidden_title">Rechercher dans les applications masquées</string>
     <string name="pref_search_within_hidden_summary">La recherche du tiroir trouve les applications masquées</string>

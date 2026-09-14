@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">छिपे हुए ऐप्स</string>
     <string name="pref_category_hidden_apps_summary">ऐप ड्रॉअर से ऐप्स छिपाएँ</string>
     <string name="hidden_apps_label">छिपा हुआ</string>
+    <string name="locked_apps_label">सुरक्षित</string>
     <string name="hidden_apps_search_hint">ऐप्स खोजें...</string>
     <string name="pref_search_within_hidden_title">छिपे हुए ऐप्स में खोजें</string>
     <string name="pref_search_within_hidden_summary">ऐप ड्रॉअर खोज छिपे हुए ऐप्स भी ढूँढ़ती है</string>

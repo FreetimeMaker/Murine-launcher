@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">Gizli uygulamalar</string>
     <string name="pref_category_hidden_apps_summary">Uygulamaları uygulama çekmecesinden gizle</string>
     <string name="hidden_apps_label">Gizli</string>
+    <string name="locked_apps_label">Korumalı</string>
     <string name="hidden_apps_search_hint">Uygulama ara...</string>
     <string name="pref_search_within_hidden_title">Gizli uygulamalarda ara</string>
     <string name="pref_search_within_hidden_summary">Çekmece araması gizli uygulamaları bulur</string>

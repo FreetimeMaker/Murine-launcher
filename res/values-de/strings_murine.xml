@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">Ausgeblendete Apps</string>
     <string name="pref_category_hidden_apps_summary">Apps aus der App-Übersicht ausblenden</string>
     <string name="hidden_apps_label">Ausgeblendet</string>
+    <string name="locked_apps_label">Geschützt</string>
     <string name="hidden_apps_search_hint">Apps suchen...</string>
     <string name="pref_search_within_hidden_title">In ausgeblendeten Apps suchen</string>
     <string name="pref_search_within_hidden_summary">Die Suche in der App-Übersicht findet ausgeblendete Apps</string>

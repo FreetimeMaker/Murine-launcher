@@ -145,6 +145,7 @@
     <string name="pref_category_hidden_apps_title">Aplicaciones ocultas</string>
     <string name="pref_category_hidden_apps_summary">Ocultar aplicaciones del cajón</string>
     <string name="hidden_apps_label">Ocultas</string>
+    <string name="locked_apps_label">Protegidas</string>
     <string name="hidden_apps_search_hint">Buscar aplicaciones...</string>
     <string name="pref_search_within_hidden_title">Buscar en aplicaciones ocultas</string>
     <string name="pref_search_within_hidden_summary">La búsqueda en el cajón de aplicaciones encuentra aplicaciones ocultas</string>

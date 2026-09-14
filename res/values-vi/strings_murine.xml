@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">Ứng dụng đã ẩn</string>
     <string name="pref_category_hidden_apps_summary">Ẩn ứng dụng khỏi ngăn ứng dụng</string>
     <string name="hidden_apps_label">Đã ẩn</string>
+    <string name="locked_apps_label">Được bảo vệ</string>
     <string name="hidden_apps_search_hint">Tìm ứng dụng...</string>
     <string name="pref_search_within_hidden_title">Tìm trong ứng dụng đã ẩn</string>
     <string name="pref_search_within_hidden_summary">Tìm kiếm trong ngăn ứng dụng cũng tìm thấy ứng dụng đã ẩn</string>

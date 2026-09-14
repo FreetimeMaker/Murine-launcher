@@ -143,6 +143,7 @@
     <string name="pref_category_hidden_apps_title">Apps ocultos</string>
     <string name="pref_category_hidden_apps_summary">Ocultar apps da gaveta de apps</string>
     <string name="hidden_apps_label">Ocultos</string>
+    <string name="locked_apps_label">Protegidos</string>
     <string name="hidden_apps_search_hint">Pesquisar apps...</string>
     <string name="pref_search_within_hidden_title">Pesquisar entre os apps ocultos</string>
     <string name="pref_search_within_hidden_summary">A pesquisa da gaveta encontra apps ocultos</string>
