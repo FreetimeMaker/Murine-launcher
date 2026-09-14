@@ -3,7 +3,11 @@ plugins {
 }
 
 android {
-    compileSdk = COMPILE_SDK as int
+    def (sdkMajor, sdkMinor) = COMPILE_SDK.tokenize('.')
+    compileSdk {
+        version = sdkMinor ? release(sdkMajor as int) { it.minorApiLevel = sdkMinor as int } : release(sdkMajor as int)
+    }
+
     namespace "com.android.systemui.plugin_core"
 
     defaultConfig {

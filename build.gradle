@@ -36,17 +36,21 @@ def frameworkStubs13 = resolveJitpackStub('13-r1')
 def frameworkStubs14 = resolveJitpackStub('14-r1')
 def frameworkStubs15 = resolveJitpackStub('15-r1')
 def frameworkStubs16 = resolveJitpackStub('16-r2')
+def frameworkStubs17 = resolveJitpackStub('17-r2')
 
 apply plugin: 'com.google.protobuf'
 
 android {
-    compileSdk = COMPILE_SDK as int
+    def (sdkMajor, sdkMinor) = COMPILE_SDK.tokenize('.')
+    compileSdk {
+        version = sdkMinor ? release(sdkMajor as int) { it.minorApiLevel = sdkMinor as int } : release(sdkMajor as int)
+    }
 
     namespace = 'com.android.launcher3'
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode 10202
         versionName "1.2.2"
 
@@ -247,8 +251,8 @@ allprojects {
         afterEvaluate { proj ->
             if (proj.plugins.hasPlugin('com.android.application') || proj.plugins.hasPlugin('com.android.library')) {
 
-                // Map compat lib suffix -> stubs info
-                def stubsMap = [
+                // Use different framework stubs versions for compat libs
+                def compatLibStubsMap = [
                         ""      : frameworkStubs16,
                         Baklava : frameworkStubs16,
                         Q       : frameworkStubs10,
@@ -258,9 +262,14 @@ allprojects {
                         U       : frameworkStubs14,
                         V       : frameworkStubs15,
                 ]
+                // Use different framework stubs versions for different subprojects
+                def pinnedStubs = [
+                        wm_shared: frameworkStubs16
+                ]
+
                 def m = proj.name =~ /^compatLibV?(.*)$/
-                def stubs = frameworkStubs16  // default for non-compat modules
-                if (m.matches()) stubs = stubsMap.get(m[0][1], frameworkStubs16)
+                def stubs = pinnedStubs.get(proj.name, frameworkStubs17)  // Default framework stub used for main project
+                if (m.matches()) stubs = compatLibStubsMap.get(m[0][1], frameworkStubs16)
                 addFrameworkStubsInternal(proj, "compileFrameworkStubs", stubs)
 
 
