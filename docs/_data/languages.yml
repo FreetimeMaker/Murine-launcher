@@ -27,6 +27,13 @@ languages:
     by_git: alesimula
     note: Dev's language
 
+  - code: fr
+    name: French
+    native: Français
+    status: partial
+    strings: 145
+    by: My mum
+
   - code: es
     name: Spanish
     native: Español
@@ -37,12 +44,6 @@ languages:
   - code: de
     name: German
     native: Deutsch
-    status: ai
-    strings: 145
-
-  - code: fr
-    name: French
-    native: Français
     status: ai
     strings: 145
 
@@ -121,7 +122,8 @@ languages:
   - code: in
     name: Indonesian
     native: Bahasa Indonesia
-    status: ai
+    status: mostly
+    by_git: db3150
     strings: 145
 
   - code: vi
