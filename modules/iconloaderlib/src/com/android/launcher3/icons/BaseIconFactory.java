@@ -35,7 +35,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.os.UserHandle;
-import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.annotation.ColorInt;
