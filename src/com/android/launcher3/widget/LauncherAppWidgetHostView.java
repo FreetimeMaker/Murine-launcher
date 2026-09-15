@@ -99,7 +99,7 @@ public class LauncherAppWidgetHostView extends BaseLauncherAppWidgetHostView
                     R.dimen.focus_rect_widget_outsets);
         }
 
-        if (Themes.getAttrBoolean(context, R.attr.isWorkspaceDarkText)) {
+        if (Utilities.ATLEAST_Q && Themes.getAttrBoolean(context, R.attr.isWorkspaceDarkText)) {
             setOnLightBackground(true);
         }
     }
