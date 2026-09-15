@@ -35,6 +35,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.os.UserHandle;
+import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.annotation.ColorInt;
@@ -115,6 +116,9 @@ public class BaseIconFactory implements AutoCloseable {
     protected IconThemeController mThemeController;
 
     @Nullable
+    private IconNormalizer mNormalizer;
+
+    @Nullable
     private ShadowGenerator mShadowGenerator;
 
     /** Shadow bitmap used as background for theme icons */
@@ -153,6 +157,14 @@ public class BaseIconFactory implements AutoCloseable {
             mShadowGenerator = new ShadowGenerator(mIconBitmapSize);
         }
         return mShadowGenerator;
+    }
+
+    @NonNull
+    public IconNormalizer getNormalizer() {
+        if (mNormalizer == null) {
+            mNormalizer = new IconNormalizer(mIconBitmapSize);
+        }
+        return mNormalizer;
     }
 
     @Nullable
@@ -394,7 +406,7 @@ public class BaseIconFactory implements AutoCloseable {
         boolean shouldWrapAdaptive = IconPreferencesKt.shouldWrapAdaptive(mContext)
                 && (icon.getChangingConfigurations() & CONFIG_HINT_NO_ADAPTIVE_WRAP) == 0;
         if (IconProvider.ATLEAST_OREO && shouldWrapAdaptive) {
-            float scale = new IconNormalizer(mIconBitmapSize).getScale(icon);
+            float scale = getNormalizer().getScale(icon);
 
             int wrapperBackgroundColor = IconPreferencesKt.getWrapperBackgroundColor(mContext,
                 icon);
@@ -408,12 +420,12 @@ public class BaseIconFactory implements AutoCloseable {
                 foreground
             );
 
-            scale = new IconNormalizer(mIconBitmapSize).getScale(wrapper);
+            scale = getNormalizer().getScale(wrapper);
             outScale[0] = scale;
             return wrapper;
         }
 
-        outScale[0] = new IconNormalizer(mIconBitmapSize).getScale(icon);
+        outScale[0] = getNormalizer().getScale(icon);
         return icon;
     }
 
@@ -444,7 +456,7 @@ public class BaseIconFactory implements AutoCloseable {
         } else {
             int wrapperBackgroundColor = IconPreferencesKt.getWrapperBackgroundColor(mContext, icon);
 
-            float scale = new IconNormalizer(mIconBitmapSize).getScale(icon);
+            float scale = getNormalizer().getScale(icon);
             CustomAdaptiveIconDrawable dr = new CustomAdaptiveIconDrawable(
                     new ColorDrawable(wrapperBackgroundColor), createScaledDrawable(icon, scale * LEGACY_ICON_SCALE));
             dr.setBounds(0, 0, 1, 1);
