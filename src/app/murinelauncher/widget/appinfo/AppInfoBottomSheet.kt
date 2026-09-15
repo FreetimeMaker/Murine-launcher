@@ -74,7 +74,10 @@ class AppInfoBottomSheet @JvmOverloads constructor(context: Context?, attrs: Att
                 context, mItemInfo, Utilities.getViewBounds(v), null
             )
         }
-        if (itemInfo.user == Process.myUserHandle()) setUpAppLockButton(componentName?.packageName)
+        val isApp = itemInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+                && (itemInfo as? WorkspaceItemInfo)?.getDeepShortcutId() == null
+        if (isApp && itemInfo.user == Process.myUserHandle())
+            setUpAppLockButton(componentName?.packageName)
 
         if (componentName != null) {
             val activity = BaseActivity.fromContext<BaseActivity>(context)
