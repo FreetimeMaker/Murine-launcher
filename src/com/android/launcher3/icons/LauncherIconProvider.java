@@ -138,7 +138,13 @@ public class LauncherIconProvider extends IconProvider {
         } catch (Exception e) {
             return super.loadPackageIcon(info, appInfo, density);
         }
-        return ResourceUtilsKt.withLegacyIcons(res, () -> super.loadPackageIcon(info, appInfo, density));
+        Drawable icon = ResourceUtilsKt.withLegacyIcons(res, () -> super.loadPackageIcon(info, appInfo, density));
+        if (!(icon instanceof AdaptiveIconDrawable)) return icon;
+        // aapt2 drops -v26 when an app's minSdk is 26+, so the hack above still matches the adaptive
+        // fallback: read the legacy value straight from the resource table instead
+        int id = info != appInfo && info.icon != 0 ? info.icon : appInfo.icon;
+        Drawable legacy = ResourceUtilsKt.loadLegacyIcon(res, appInfo, id, density);
+        return legacy != null ? legacy : icon;
     }
 
     /**
