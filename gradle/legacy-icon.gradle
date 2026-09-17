@@ -1,0 +1,766 @@
+/*
+ * Keeps the launcher icons' "-v26" qualifier in the packaged resources, so launchers that
+ * resolve icons as if the platform were pre-Oreo (e.g. a "force legacy icons" option) get the
+ * app's legacy icon or vector freeform icon instead of its adaptive icon.
+ *
+ * aapt2 (link and optimize) strips every version qualifier <= minSdk, so with minSdk >= 26
+ * res/mipmap-anydpi-v26/ is packaged as plain "anydpi", which wins at any sdk. There is no flag
+ * to turn that off, so after every task that writes linked resources this puts sdkVersion 26
+ * back, only on:
+ *   - the resources referenced by android:icon / android:roundIcon of <application>,
+ *     <activity> and <activity-alias> in the packaged manifest (plus the resources those
+ *     reference, if they are aliases),
+ *   - and only on their "anydpi" values without an sdk version that are <adaptive-icon> files,
+ *   - and only if the resource has another value to fall back to (e.g. a plain default).
+ * Nothing else in the table changes, and nothing at all happens when the manifest's minSdk is
+ * below 26 (aapt2 keeps -v26 then). Adaptive icons need API 26 anyway, so real devices are
+ * unaffected. Both formats are handled: resources.arsc (APKs) and resources.pb (app bundles;
+ * bundletool converts it without collapsing versions again).
+ *
+ * USAGE
+ *
+ * 1. Apply it in the app module's build script, after the Android plugin:
+ *
+ *        apply from: 'gradle/legacy-icon.gradle'          // build.gradle
+ *        apply(from = "gradle/legacy-icon.gradle")        // build.gradle.kts
+ *
+ *    The path is relative to the module directory (use rootProject.file(...) if the script
+ *    lives elsewhere). Nothing else to configure: icons are read from the manifest.
+ *
+ * 2. Keep the adaptive icon where it normally is and point the manifest at it:
+ *
+ *        res/mipmap-anydpi-v26/ic_launcher.xml            // <adaptive-icon>
+ *        <application android:icon="@mipmap/ic_launcher" ...>
+ *
+ *    android:roundIcon and <activity>/<activity-alias> icons are handled the same way.
+ *
+ * 3. Give the icon a legacy (non-adaptive) value without a version qualifier. Either PNGs
+ *    (res/mipmap-mdpi/ic_launcher.png, ...), or a single vector: put the vector in
+ *    res/drawable/ic_launcher_legacy.xml and alias it from any values file (e.g. res/values/ic_launcher.xml):
+ *
+ *        <resources xmlns:tools="http://schemas.android.com/tools">
+ *            <item name="ic_launcher" type="mipmap"
+ *                tools:ignore="ReferenceType">@drawable/ic_launcher_legacy</item>
+ *        </resources>
+ *
+ *    The alias keeps the vector out of res/mipmap/ (where the IDE flags <vector>), and
+ *    tools:ignore silences the ReferenceType lint error (a mipmap aliasing a drawable), which
+ *    otherwise fails release builds. Without a legacy value the icon is left untouched.
+ *
+ * If minSdk < 26 it is a no-op as it's not needed.
+ * Hooks AGP's process*Resources, convertShrunkResourcesToBinary*, optimize*Resources and minify*WithR8 tasks.
+ */
+
+class LegacyIconResPatcher {
+    static final int RES_STRING_POOL_TYPE = 0x0001
+    static final int RES_TABLE_TYPE = 0x0002
+    static final int RES_XML_TYPE = 0x0003
+    static final int RES_XML_START_ELEMENT_TYPE = 0x0102
+    static final int RES_XML_RESOURCE_MAP_TYPE = 0x0180
+    static final int RES_TABLE_PACKAGE_TYPE = 0x0200
+    static final int RES_TABLE_TYPE_TYPE = 0x0201
+    static final int RES_TABLE_TYPE_SPEC_TYPE = 0x0202
+    static final int ATTR_ICON = 0x01010002          // android:icon
+    static final int ATTR_ROUND_ICON = 0x0101052c    // android:roundIcon
+    static final int ATTR_MIN_SDK = 0x0101020c       // android:minSdkVersion
+    static final String ADAPTIVE_ICON = 'adaptive-icon'
+    static final Set<String> ICON_ELEMENTS = ['application', 'activity', 'activity-alias'] as Set
+    static final int TYPE_REFERENCE = 0x01
+    static final int TYPE_STRING = 0x03
+    static final int TYPE_DYNAMIC_REFERENCE = 0x07
+    static final int TYPE_INT_DEC = 0x10
+    static final int TYPE_INT_HEX = 0x11
+    static final int PREVIEW_SDK = 10000             // minSdkVersion given as a codename
+    static final int DENSITY_ANY = 0xfffe
+    static final int CONFIG_VERSION = 0x0400
+    static final int NO_ENTRY = -1
+    static final int ADAPTIVE_ICON_SDK = 26
+    static final int MAX_ALIAS_DEPTH = 8
+
+    /** Patches the resource table inside an .ap_ file in place. Returns true if it changed. */
+    static boolean patchApFile(File ap) {
+        String name = null
+        byte[] patched = null
+        new java.util.zip.ZipFile(ap).withCloseable { zip ->
+            def manifestEntry = zip.getEntry('AndroidManifest.xml')
+            if (manifestEntry == null) return
+            byte[] manifest = zip.getInputStream(manifestEntry).bytes
+            Closure<byte[]> readFile = { path ->
+                def e = zip.getEntry(path as String)
+                e == null ? null : zip.getInputStream(e).bytes
+            }
+            if (zip.getEntry('resources.arsc') != null) {
+                name = 'resources.arsc'
+                Map info = binaryManifestInfo(manifest)
+                if ((info.minSdk as int) < ADAPTIVE_ICON_SDK) return
+                patched = patchArsc(readFile.call(name), info.icons as Set<Integer>, readFile)
+            } else if (zip.getEntry('resources.pb') != null) {
+                name = 'resources.pb'
+                Map info = protoManifestInfo(manifest)
+                if ((info.minSdk as int) < ADAPTIVE_ICON_SDK) return
+                patched = patchProto(readFile.call(name), info.icons as Set<Integer>, readFile)
+            }
+        }
+        if (patched == null) return false
+        replaceZipEntry(ap, name, patched)
+        return true
+    }
+
+    // ---- Zip: replace one entry, copy every other one byte for byte ----
+    // Recompressing the other entries would make their bytes depend on the JDK's zlib, and the
+    // packager copies compressed entries from the .ap_ into the APK as they are.
+
+    static void replaceZipEntry(File file, String name, byte[] data) {
+        byte[] zip = file.bytes
+        def buf = le(zip)
+        int eocd = -1
+        for (int p = zip.length - 22; p >= Math.max(0, zip.length - 22 - 0xffff); p--) {
+            if (buf.getInt(p) == 0x06054b50) { eocd = p; break }
+        }
+        if (eocd < 0) throw new IllegalStateException("${file.name}: no zip end record")
+        int count = u16(buf, eocd + 10)
+        long cdOffset = buf.getInt(eocd + 16) & 0xffffffffL
+        if (count == 0xffff || cdOffset == 0xffffffffL) throw new IllegalStateException("${file.name}: zip64 is not supported")
+
+        // Central directory records: {record offset, record length, local header offset}
+        List<int[]> records = []
+        int target = -1
+        for (int i = 0, p = (int) cdOffset; i < count; i++) {
+            if (buf.getInt(p) != 0x02014b50) throw new IllegalStateException("${file.name}: bad central directory")
+            int nameLen = u16(buf, p + 28)
+            int length = 46 + nameLen + u16(buf, p + 30) + u16(buf, p + 32)
+            if (new String(zip, p + 46, nameLen, 'UTF-8') == name) target = i
+            records.add([p, length, buf.getInt(p + 42)] as int[])
+            p += length
+        }
+        if (target < 0) throw new IllegalStateException("${file.name}: no $name")
+        int method = u16(buf, records[target][0] + 10)
+        byte[] stored = data
+        if (method == java.util.zip.ZipEntry.DEFLATED) {
+            def deflater = new java.util.zip.Deflater(java.util.zip.Deflater.DEFAULT_COMPRESSION, true)
+            try {
+                deflater.setInput(data)
+                deflater.finish()
+                def out = new ByteArrayOutputStream()
+                byte[] chunk = new byte[65536]
+                while (!deflater.finished()) out.write(chunk, 0, deflater.deflate(chunk))
+                stored = out.toByteArray()
+            } finally {
+                deflater.end()
+            }
+        } else if (method != java.util.zip.ZipEntry.STORED) {
+            throw new IllegalStateException("${file.name}: unsupported compression for $name")
+        }
+        def crc = new java.util.zip.CRC32()
+        crc.update(data)
+
+        // Local entries in file order; each spans up to the next one (or the central directory).
+        List<int[]> locals = records.collect { it } .sort { it[2] }
+        def out = new ByteArrayOutputStream()
+        Map<Integer, Integer> moved = [:]
+        for (int i = 0; i < locals.size(); i++) {
+            int start = locals[i][2]
+            int end = i + 1 < locals.size() ? locals[i + 1][2] : (int) cdOffset
+            moved.put(start, out.size())
+            if (locals[i].is(records[target])) {
+                int headerLen = 30 + u16(buf, start + 26) + u16(buf, start + 28)
+                byte[] header = Arrays.copyOfRange(zip, start, start + headerLen)
+                def h = le(header)
+                h.putShort(6, (short) (u16(h, 6) & ~0x08))      // sizes are in the header now
+                h.putInt(14, (int) crc.value)
+                h.putInt(18, stored.length)
+                h.putInt(22, data.length)
+                out.write(header)
+                out.write(stored)
+            } else {
+                out.write(zip, start, end - start)
+            }
+        }
+        int newCdOffset = out.size()
+        for (int i = 0; i < records.size(); i++) {
+            int[] r = records[i]
+            byte[] record = Arrays.copyOfRange(zip, r[0], r[0] + r[1])
+            def c = le(record)
+            c.putInt(42, moved.get(r[2]))
+            if (i == target) {
+                c.putShort(8, (short) (u16(c, 8) & ~0x08))
+                c.putInt(16, (int) crc.value)
+                c.putInt(20, stored.length)
+                c.putInt(24, data.length)
+            }
+            out.write(record)
+        }
+        byte[] end = Arrays.copyOfRange(zip, eocd, zip.length)
+        le(end).putInt(12, out.size() - newCdOffset)
+        le(end).putInt(16, newCdOffset)
+        out.write(end)
+
+        File tmp = new File(file.absoluteFile.parentFile, file.name + '.tmp')
+        tmp.bytes = out.toByteArray()
+        java.nio.file.Files.move(tmp.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    }
+
+    // ---- Binary format: AndroidManifest.xml (AXML) and resources.arsc ----
+    // frameworks/base/libs/androidfw/include/androidfw/ResourceTypes.h
+
+    /**
+     * [icons: resource ids of the icons declared in a binary manifest, minSdk: its minSdkVersion
+     * (1 if missing, PREVIEW_SDK for a codename)].
+     */
+    static Map binaryManifestInfo(byte[] xml) {
+        Set<Integer> icons = new HashSet<>()
+        int minSdk = 1
+        def buf = le(xml)
+        if (xml.length < 8 || u16(buf, 0) != RES_XML_TYPE) return [icons: icons, minSdk: minSdk]
+        int pool = -1
+        int[] resMap = new int[0]
+        int pos = u16(buf, 2)
+        while (pos + 8 <= xml.length) {
+            int type = u16(buf, pos)
+            int size = buf.getInt(pos + 4)
+            if (size <= 0) break
+            if (type == RES_STRING_POOL_TYPE) {
+                pool = pos
+            } else if (type == RES_XML_RESOURCE_MAP_TYPE) {
+                int start = pos + u16(buf, pos + 2)
+                resMap = new int[(pos + size - start).intdiv(4)]
+                for (int i = 0; i < resMap.length; i++) resMap[i] = buf.getInt(start + 4 * i)
+            } else if (type == RES_XML_START_ELEMENT_TYPE && pool >= 0) {
+                // ResXMLTree_attrExt: ns, name, attributeStart, attributeSize, attributeCount
+                int ext = pos + u16(buf, pos + 2)
+                String element = stringAt(buf, pool, buf.getInt(ext + 4))
+                boolean iconElement = ICON_ELEMENTS.contains(element)
+                int attrs = ext + u16(buf, ext + 8)
+                int attrSize = u16(buf, ext + 10)
+                int count = u16(buf, ext + 12)
+                for (int i = 0; i < count; i++) {
+                    // ResXMLTree_attribute: ns, name, rawValue, Res_value(size, res0, dataType, data)
+                    int a = attrs + i * attrSize
+                    int nameIdx = buf.getInt(a + 4)
+                    int attrId = nameIdx >= 0 && nameIdx < resMap.length ? resMap[nameIdx] : 0
+                    int dataType = buf.get(a + 15) & 0xff
+                    int data = buf.getInt(a + 16)
+                    if (iconElement && (attrId == ATTR_ICON || attrId == ATTR_ROUND_ICON)
+                            && (dataType == TYPE_REFERENCE || dataType == TYPE_DYNAMIC_REFERENCE)) {
+                        icons.add(data)
+                    } else if (element == 'uses-sdk' && attrId == ATTR_MIN_SDK) {
+                        minSdk = dataType == TYPE_INT_DEC || dataType == TYPE_INT_HEX ? data : PREVIEW_SDK
+                    }
+                }
+            }
+            pos += size
+        }
+        return [icons: icons, minSdk: minSdk]
+    }
+
+    /** Name of the root element of a binary (AXML) or proto XML file, or null. */
+    static String rootElement(byte[] file) {
+        if (file == null || file.length < 8) return null
+        def buf = le(file)
+        if (u16(buf, 0) == RES_XML_TYPE) {
+            int pool = -1
+            for (int pos = u16(buf, 2); pos + 8 <= file.length; ) {
+                int size = buf.getInt(pos + 4)
+                if (size <= 0) break
+                int type = u16(buf, pos)
+                if (type == RES_STRING_POOL_TYPE) pool = pos
+                if (type == RES_XML_START_ELEMENT_TYPE && pool >= 0) {
+                    return stringAt(buf, pool, buf.getInt(pos + u16(buf, pos + 2) + 4))
+                }
+                pos += size
+            }
+            return null
+        }
+        try {
+            byte[] element = messageAt(file, 1)
+            return element == null ? null : stringField(element, 3)
+        } catch (RuntimeException ignored) {
+            return null                                    // not proto XML (e.g. a PNG)
+        }
+    }
+
+    /** Returns the patched resources.arsc, or null if nothing changed. */
+    static byte[] patchArsc(byte[] data, Set<Integer> icons, Closure<byte[]> readFile) {
+        if (icons.isEmpty()) return null
+        def buf = le(data)
+        if (data.length < 12 || u16(buf, 0) != RES_TABLE_TYPE) return null
+        int headerSize = u16(buf, 2)
+        // File values are indexes into the table's global string pool, its first chunk.
+        int pool = u16(buf, headerSize) == RES_STRING_POOL_TYPE ? headerSize : -1
+        Closure<Boolean> isAdaptiveIcon = { index ->
+            String path = pool < 0 ? null : stringAt(buf, pool, index as int)
+            path != null && rootElement(readFile.call(path)) == ADAPTIVE_ICON
+        }
+        def out = new ByteArrayOutputStream()
+        out.write(data, 0, headerSize)
+        boolean changed = false
+        int pos = headerSize
+        while (pos + 8 <= data.length) {
+            int size = buf.getInt(pos + 4)
+            if (size <= 0) break
+            byte[] chunk = Arrays.copyOfRange(data, pos, pos + size)
+            if (u16(buf, pos) == RES_TABLE_PACKAGE_TYPE) {
+                byte[] patched = patchPackage(chunk, icons, isAdaptiveIcon)
+                if (patched != null) { chunk = patched; changed = true }
+            }
+            out.write(chunk)
+            pos += size
+        }
+        if (!changed) return null
+        if (pos < data.length) out.write(data, pos, data.length - pos)
+        byte[] result = out.toByteArray()
+        le(result).putInt(4, result.length)
+        return result
+    }
+
+    private static byte[] patchPackage(byte[] pkg, Set<Integer> icons, Closure<Boolean> isAdaptiveIcon) {
+        def buf = le(pkg)
+        int pkgId = buf.getInt(8)
+        int headerSize = u16(buf, 2)
+        List<int[]> chunks = []                       // {offset, size}
+        for (int pos = headerSize; pos + 8 <= pkg.length; ) {
+            int size = buf.getInt(pos + 4)
+            if (size <= 0) break
+            chunks.add([pos, size] as int[])
+            pos += size
+        }
+
+        // The icons, plus whatever they alias to.
+        Set<Integer> targets = new HashSet<>(icons)
+        for (int depth = 0; depth < MAX_ALIAS_DEPTH; depth++) {
+            Set<Integer> found = new HashSet<>()
+            for (int[] c : chunks) {
+                if (u16(buf, c[0]) != RES_TABLE_TYPE_TYPE) continue
+                for (int[] e : entries(buf, c[0])) {
+                    if (!targets.contains(resId(pkgId, buf, c[0], e[0]))) continue
+                    int ref = referenceOf(buf, e[1])
+                    if (ref != 0) found.add(ref)
+                }
+            }
+            if (!targets.addAll(found)) break
+        }
+
+        // Values that are not candidates: a target needs one of these to fall back to.
+        Set<Integer> hasFallback = new HashSet<>()
+        for (int[] c : chunks) {
+            if (u16(buf, c[0]) != RES_TABLE_TYPE_TYPE || isUnversionedAnyDpi(buf, c[0])) continue
+            for (int[] e : entries(buf, c[0])) hasFallback.add(resId(pkgId, buf, c[0], e[0]))
+        }
+
+        def out = new ByteArrayOutputStream()
+        out.write(pkg, 0, headerSize)
+        Map<Integer, List<Integer>> versioned = [:]   // type id -> entry indices
+        Map<Integer, Integer> addedChunks = [:]       // type id -> extra type chunks
+        for (int[] c : chunks) {
+            int pos = c[0]
+            if (u16(buf, pos) != RES_TABLE_TYPE_TYPE || !isUnversionedAnyDpi(buf, pos)) {
+                out.write(pkg, pos, c[1])
+                continue
+            }
+            List<int[]> hit = []
+            List<int[]> rest = []
+            for (int[] e : entries(buf, pos)) {
+                int id = resId(pkgId, buf, pos, e[0])
+                boolean icon = targets.contains(id) && hasFallback.contains(id)
+                int[] value = valueOf(buf, e[1])
+                if (icon && value != null && value[0] == TYPE_STRING && isAdaptiveIcon.call(value[1])) hit.add(e)
+                else rest.add(e)
+            }
+            if (hit.isEmpty()) {
+                out.write(pkg, pos, c[1])
+                continue
+            }
+            int typeId = pkg[pos + 8] & 0xff
+            if (!versioned.containsKey(typeId)) versioned.put(typeId, [])
+            for (int[] e : hit) versioned.get(typeId).add(e[0])
+            if (rest.isEmpty()) {
+                // Everything in this chunk is an icon: just version it in place.
+                byte[] chunk = Arrays.copyOfRange(pkg, pos, pos + c[1])
+                le(chunk).putShort(20 + 24, (short) ADAPTIVE_ICON_SDK)
+                out.write(chunk)
+            } else {
+                // Split: the icons move to their own anydpi-v26 chunk, the rest stays as is.
+                out.write(buildTypeChunk(buf, pos, rest, 0))
+                out.write(buildTypeChunk(buf, pos, hit, ADAPTIVE_ICON_SDK))
+                addedChunks.put(typeId, (addedChunks.get(typeId) ?: 0) + 1)
+            }
+        }
+        if (versioned.isEmpty()) return null
+
+        byte[] result = out.toByteArray()
+        def rb = le(result)
+        rb.putInt(4, result.length)
+        for (int pos = headerSize; pos + 8 <= result.length; ) {
+            int size = rb.getInt(pos + 4)
+            if (size <= 0) break
+            int typeId = result[pos + 8] & 0xff
+            if (u16(rb, pos) == RES_TABLE_TYPE_SPEC_TYPE && versioned.containsKey(typeId)) {
+                // These entries now vary by sdk version too.
+                int count = rb.getInt(pos + 12)
+                int flags = pos + u16(rb, pos + 2)
+                for (int idx : versioned.get(typeId)) {
+                    if (idx < count) rb.putInt(flags + 4 * idx, rb.getInt(flags + 4 * idx) | CONFIG_VERSION)
+                }
+                // typesCount is only a size hint, and 0 means unset.
+                int typesCount = u16(rb, pos + 10)
+                int added = addedChunks.get(typeId) ?: 0
+                if (typesCount != 0 && added != 0) rb.putShort(pos + 10, (short) (typesCount + added))
+            }
+            pos += size
+        }
+        return result
+    }
+
+    private static boolean isUnversionedAnyDpi(java.nio.ByteBuffer buf, int chunk) {
+        int cfg = chunk + 20
+        return buf.getInt(cfg) >= 28 && u16(buf, cfg + 14) == DENSITY_ANY && u16(buf, cfg + 24) == 0
+    }
+
+    private static int resId(int pkgId, java.nio.ByteBuffer buf, int chunk, int idx) {
+        return (pkgId << 24) | ((buf.get(chunk + 8) & 0xff) << 16) | idx
+    }
+
+    /** {entry index, absolute entry offset} for every entry present in a type chunk. */
+    private static List<int[]> entries(java.nio.ByteBuffer buf, int chunk) {
+        int flags = buf.get(chunk + 9) & 0xff
+        int count = buf.getInt(chunk + 12)
+        int start = chunk + buf.getInt(chunk + 16)
+        int offsets = chunk + u16(buf, chunk + 2)
+        List<int[]> result = []
+        for (int i = 0; i < count; i++) {
+            if ((flags & 0x01) != 0) {        // FLAG_SPARSE: {idx, offset / 4}
+                result.add([u16(buf, offsets + 4 * i), start + 4 * u16(buf, offsets + 4 * i + 2)] as int[])
+            } else if ((flags & 0x02) != 0) { // FLAG_OFFSET16: offset / 4, 0xffff = none
+                int off = u16(buf, offsets + 2 * i)
+                if (off != 0xffff) result.add([i, start + 4 * off] as int[])
+            } else {
+                int off = buf.getInt(offsets + 4 * i)
+                if (off != NO_ENTRY) result.add([i, start + off] as int[])
+            }
+        }
+        return result
+    }
+
+    /** Bytes taken by the entry at [e], including its value(s). */
+    private static int entryLength(java.nio.ByteBuffer buf, int e) {
+        int size = u16(buf, e)
+        int flags = u16(buf, e + 2)
+        if ((flags & 0x08) != 0) return 8                                  // FLAG_COMPACT
+        if ((flags & 0x01) != 0) return size + 12 * buf.getInt(e + 12)   // FLAG_COMPLEX: map entries
+        return size + u16(buf, e + size)                                   // entry + Res_value
+    }
+
+    /** {dataType, data} of a simple entry, or null for a complex (map) entry. */
+    private static int[] valueOf(java.nio.ByteBuffer buf, int e) {
+        int size = u16(buf, e)
+        int flags = u16(buf, e + 2)
+        if ((flags & 0x01) != 0) return null
+        if ((flags & 0x08) != 0) return [flags >>> 8, buf.getInt(e + 4)] as int[]   // FLAG_COMPACT
+        return [buf.get(e + size + 3) & 0xff, buf.getInt(e + size + 4)] as int[]
+    }
+
+    /** The resource id a simple entry points to, or 0. */
+    private static int referenceOf(java.nio.ByteBuffer buf, int e) {
+        int[] value = valueOf(buf, e)
+        return value != null && (value[0] == TYPE_REFERENCE || value[0] == TYPE_DYNAMIC_REFERENCE) ? value[1] : 0
+    }
+
+    /** A dense copy of the type chunk at [chunk] holding only [entries], with the given sdk. */
+    private static byte[] buildTypeChunk(java.nio.ByteBuffer buf, int chunk, List<int[]> entries, int sdk) {
+        byte[] src = buf.array()
+        int headerSize = u16(buf, chunk + 2)
+        int count = 0
+        for (int[] e : entries) count = Math.max(count, e[0] + 1)
+        int[] offsets = new int[count]
+        Arrays.fill(offsets, NO_ENTRY)
+        def data = new ByteArrayOutputStream()
+        for (int[] e : entries) {
+            offsets[e[0]] = data.size()
+            data.write(src, e[1], entryLength(buf, e[1]))
+            while (data.size() % 4 != 0) data.write(0)
+        }
+        int entriesStart = headerSize + 4 * count
+        byte[] out = new byte[entriesStart + data.size()]
+        System.arraycopy(src, chunk, out, 0, headerSize)   // header, including the config
+        def b = le(out)
+        b.putInt(4, out.length)
+        out[9] = 0                                         // dense, 32-bit offsets
+        b.putInt(12, count)
+        b.putInt(16, entriesStart)
+        b.putShort(20 + 24, (short) sdk)
+        for (int i = 0; i < count; i++) b.putInt(headerSize + 4 * i, offsets[i])
+        System.arraycopy(data.toByteArray(), 0, out, entriesStart, data.size())
+        return out
+    }
+
+    private static String stringAt(java.nio.ByteBuffer buf, int pool, int index) {
+        if (u16(buf, pool) != RES_STRING_POOL_TYPE || index < 0 || index >= buf.getInt(pool + 8)) return null
+        int flags = buf.getInt(pool + 16)
+        int p = pool + buf.getInt(pool + 20) + buf.getInt(pool + u16(buf, pool + 2) + 4 * index)
+        if ((flags & 0x100) != 0) {                                    // UTF-8
+            p += ((buf.get(p) & 0x80) != 0) ? 2 : 1                    // utf16 length
+            int len = buf.get(p) & 0xff
+            if ((len & 0x80) != 0) { len = ((len & 0x7f) << 8) | (buf.get(p + 1) & 0xff); p += 2 } else { p += 1 }
+            return new String(buf.array(), p, len, 'UTF-8')
+        }
+        int len = u16(buf, p)
+        if ((len & 0x8000) != 0) { len = ((len & 0x7fff) << 16) | u16(buf, p + 2); p += 4 } else { p += 2 }
+        return new String(buf.array(), p, len * 2, 'UTF-16LE')
+    }
+
+    private static java.nio.ByteBuffer le(byte[] b) {
+        return java.nio.ByteBuffer.wrap(b).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+    }
+
+    private static int u16(java.nio.ByteBuffer buf, int pos) {
+        return buf.getShort(pos) & 0xffff
+    }
+
+    // ---- Proto format: AndroidManifest.xml (aapt.pb.XmlNode) and resources.pb ----
+    // frameworks/base/tools/aapt2/Resources.proto, Configuration.proto
+    //   XmlNode.element(1) > XmlElement.name(3), attribute(4), child(5)
+    //   XmlAttribute.resource_id(5), compiled_item(6) > Item.ref(1) > Reference.type(1), id(2)
+    //   ResourceTable.package(2) > Package.package_id(1), type(3) > Type.type_id(1), entry(3)
+    //   > Entry.entry_id(1), config_value(6) > ConfigValue.config(1), value(2) > Value.item(4)
+    //   Configuration.density(18), sdk_version(24)
+
+    /** Same as [binaryManifestInfo], for a proto manifest. */
+    static Map protoManifestInfo(byte[] xml) {
+        Set<Integer> icons = new HashSet<>()
+        int[] minSdk = [1]
+        collectProtoManifest(xml, icons, minSdk)
+        return [icons: icons, minSdk: minSdk[0]]
+    }
+
+    private static void collectProtoManifest(byte[] node, Set<Integer> icons, int[] minSdk) {
+        byte[] element = messageAt(node, 1)
+        if (element == null) return
+        String name = stringField(element, 3)
+        for (long[] f : fields(element)) {
+            if (f[1] != 2) continue
+            if (f[0] == 4) {
+                byte[] attr = payload(element, f)
+                long attrId = varintField(attr, 5)
+                if (ICON_ELEMENTS.contains(name) && (attrId == ATTR_ICON || attrId == ATTR_ROUND_ICON)) {
+                    byte[] ref = messageAt(attr, 6, 1)
+                    if (ref != null && varintField(ref, 1) == 0 && varintField(ref, 2) != 0) {
+                        icons.add((int) varintField(ref, 2))
+                    }
+                } else if (name == 'uses-sdk' && attrId == ATTR_MIN_SDK) {
+                    byte[] prim = messageAt(attr, 6, 7)
+                    if (prim != null && hasVarint(prim, 6)) minSdk[0] = (int) varintField(prim, 6)
+                    else if (prim != null && hasVarint(prim, 7)) minSdk[0] = (int) varintField(prim, 7)
+                    else minSdk[0] = (stringField(attr, 3) ?: '').isInteger() ? stringField(attr, 3).toInteger() : PREVIEW_SDK
+                }
+            } else if (f[0] == 5) {
+                collectProtoManifest(payload(element, f), icons, minSdk)
+            }
+        }
+    }
+
+    /** Returns the patched resources.pb, or null if nothing changed. */
+    static byte[] patchProto(byte[] table, Set<Integer> icons, Closure<byte[]> readFile) {
+        if (icons.isEmpty()) return null
+        Set<Integer> targets = new HashSet<>(icons)
+        for (int depth = 0; depth < MAX_ALIAS_DEPTH; depth++) {
+            Set<Integer> found = new HashSet<>()
+            for (byte[] entry : protoEntries(table, targets)) {
+                for (long[] f : fields(entry)) {
+                    if (f[0] != 6 || f[1] != 2) continue
+                    byte[] ref = messageAt(payload(entry, f), 2, 4, 1)
+                    if (ref != null && varintField(ref, 1) == 0 && varintField(ref, 2) != 0) {
+                        found.add((int) varintField(ref, 2))
+                    }
+                }
+            }
+            if (!targets.addAll(found)) break
+        }
+        return rewrite(table, 2) { pkg ->
+            int pkgId = idOf(pkg)
+            rewrite(pkg, 3) { type ->
+                int typeId = idOf(type)
+                rewrite(type, 3) { entry ->
+                    targets.contains((pkgId << 24) | (typeId << 16) | idOf(entry)) ? patchProtoEntry(entry, readFile) : null
+                }
+            }
+        }
+    }
+
+    /** Entries of [table] whose resource id is in [ids]. */
+    private static List<byte[]> protoEntries(byte[] table, Set<Integer> ids) {
+        List<byte[]> result = []
+        for (long[] p : fields(table)) {
+            if (p[0] != 2 || p[1] != 2) continue
+            byte[] pkg = payload(table, p)
+            int pkgId = idOf(pkg)
+            for (long[] t : fields(pkg)) {
+                if (t[0] != 3 || t[1] != 2) continue
+                byte[] type = payload(pkg, t)
+                int typeId = idOf(type)
+                for (long[] e : fields(type)) {
+                    if (e[0] != 3 || e[1] != 2) continue
+                    byte[] entry = payload(type, e)
+                    if (ids.contains((pkgId << 24) | (typeId << 16) | idOf(entry))) result.add(entry)
+                }
+            }
+        }
+        return result
+    }
+
+    private static byte[] patchProtoEntry(byte[] entry, Closure<byte[]> readFile) {
+        boolean fallback = false
+        for (long[] f : fields(entry)) {
+            if (f[0] == 6 && f[1] == 2 && !isUnversionedAnyDpi(messageAt(payload(entry, f), 1))) fallback = true
+        }
+        if (!fallback) return null
+        return rewrite(entry, 6) { cv ->
+            byte[] file = messageAt(cv as byte[], 2, 4, 5)                // Value.item.file
+            String path = file == null ? null : stringField(file, 1)
+            boolean adaptive = path != null && isUnversionedAnyDpi(messageAt(cv as byte[], 1)) &&
+                    rootElement(readFile.call(path)) == ADAPTIVE_ICON
+            adaptive ? rewrite(cv as byte[], 1) { cfg -> patchConfig(cfg as byte[]) } : null
+        }
+    }
+
+    private static boolean isUnversionedAnyDpi(byte[] cfg) {
+        return cfg != null && varintField(cfg, 18) == DENSITY_ANY && varintField(cfg, 24) == 0
+    }
+
+    private static byte[] patchConfig(byte[] cfg) {
+        if (!isUnversionedAnyDpi(cfg)) return null
+        def out = new ByteArrayOutputStream()
+        for (long[] f : fields(cfg)) {
+            if (f[0] != 24) out.write(cfg, (int) f[2], (int) (f[3] - f[2]))
+        }
+        writeVarint(out, 24 << 3)
+        writeVarint(out, ADAPTIVE_ICON_SDK)
+        return out.toByteArray()
+    }
+
+    /** The id(1) of a PackageId/TypeId/EntryId message in field 1, 0 if absent. */
+    private static int idOf(byte[] msg) {
+        byte[] id = messageAt(msg, 1)
+        return id == null ? 0 : (int) varintField(id, 1)
+    }
+
+    /**
+     * Copies [msg], passing the payload of every length-delimited [field] through [patch].
+     * Returns null if [patch] changed nothing.
+     */
+    private static byte[] rewrite(byte[] msg, int field, Closure<byte[]> patch) {
+        boolean changed = false
+        def out = new ByteArrayOutputStream()
+        for (long[] f : fields(msg)) {
+            byte[] patched = (f[0] == field && f[1] == 2) ? patch.call(payload(msg, f)) : null
+            if (patched == null) {
+                out.write(msg, (int) f[2], (int) (f[3] - f[2]))
+            } else {
+                writeVarint(out, (field << 3) | 2)
+                writeVarint(out, patched.length)
+                out.write(patched)
+                changed = true
+            }
+        }
+        return changed ? out.toByteArray() : null
+    }
+
+    /** The nested message at the given field path (first occurrence at each level), or null. */
+    private static byte[] messageAt(byte[] msg, int... path) {
+        byte[] current = msg
+        for (int field : path) {
+            byte[] next = null
+            for (long[] f : fields(current)) {
+                if (f[0] == field && f[1] == 2) { next = payload(current, f); break }
+            }
+            if (next == null) return null
+            current = next
+        }
+        return current
+    }
+
+    private static long varintField(byte[] msg, int field) {
+        long value = 0
+        for (long[] f : fields(msg)) {
+            if (f[0] == field && f[1] == 0) value = f[4]
+        }
+        return value
+    }
+
+    private static boolean hasVarint(byte[] msg, int field) {
+        for (long[] f : fields(msg)) {
+            if (f[0] == field && f[1] == 0) return true
+        }
+        return false
+    }
+
+    private static String stringField(byte[] msg, int field) {
+        byte[] s = messageAt(msg, field)
+        return s == null ? null : new String(s, 'UTF-8')
+    }
+
+    private static byte[] payload(byte[] msg, long[] f) {
+        return Arrays.copyOfRange(msg, (int) f[5], (int) f[3])
+    }
+
+    /**
+     * Top-level fields of [msg], each as {field, wireType, start, end, varintValue, payloadStart}.
+     * ponytail: plain arrays and loops, Gradle's Groovy miscompiles closures with long params.
+     */
+    private static List<long[]> fields(byte[] msg) {
+        List<long[]> result = []
+        int[] pos = [0]
+        while (pos[0] < msg.length) {
+            int start = pos[0]
+            long key = readVarint(msg, pos)
+            int wire = (int) (key & 7)
+            long value = 0
+            int payloadStart = 0
+            switch (wire) {
+                case 0: value = readVarint(msg, pos); break
+                case 1: pos[0] += 8; break
+                case 2:
+                    int len = (int) readVarint(msg, pos)
+                    payloadStart = pos[0]
+                    pos[0] += len
+                    break
+                case 5: pos[0] += 4; break
+                default: throw new IllegalStateException("Unsupported wire type $wire in proto resources")
+            }
+            result << ([key >>> 3, wire, start, pos[0], value, payloadStart] as long[])
+        }
+        return result
+    }
+
+    private static long readVarint(byte[] b, int[] pos) {
+        long result = 0
+        for (int shift = 0; ; shift += 7) {
+            int x = b[pos[0]++] & 0xff
+            result |= (long) (x & 0x7f) << shift
+            if ((x & 0x80) == 0) return result
+        }
+    }
+
+    private static void writeVarint(ByteArrayOutputStream out, long v) {
+        while ((v & ~0x7fL) != 0) { out.write((int) ((v & 0x7f) | 0x80)); v >>>= 7 }
+        out.write((int) v)
+    }
+}
+
+tasks.configureEach { task ->
+    // minify*WithR8 writes the shrunk resources.pb that app bundles are built from
+    if (task.name ==~ /(process|optimize)\w+Resources|convertShrunkResourcesToBinary\w+|minify\w+WithR8/) {
+        task.doLast {
+            task.outputs.files.each { root ->
+                if (!root.exists()) return
+                def files = root.isDirectory()
+                        ? root.listFiles().findAll { it.name.endsWith('.ap_') }
+                        : (root.name.endsWith('.ap_') ? [root] : [])
+                files.each { ap ->
+                    if (LegacyIconResPatcher.patchApFile(ap)) {
+                        logger.info("Restored anydpi-v26 on the launcher icons in ${ap.name}")
+                    }
+                }
+            }
+        }
+    }
+}

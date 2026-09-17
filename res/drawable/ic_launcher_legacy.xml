@@ -1,12 +1,37 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="1024"
     android:viewportHeight="1024">
-  <group android:scaleX="0.57"
-      android:scaleY="0.57"
-      android:translateX="220.16"
-      android:translateY="220.16">
+  <!-- Fits the stroked head edge to edge: its bounds, stroke included, are
+       x -30.19..1054.21, y 117.78..975.1 (half of strokeWidth 73 around the path).
+       scale = 1024 / width (rounded down), pivot = bounds center; recompute if either changes.
+       The gradient spans the same bounds, so it still covers the canvas like the adaptive one -->
+  <!-- the icon is slighly moved to the bottom (looks nicer); to center, set android:translateY to -34.44 -->
+  <group android:pivotX="512.01" android:pivotY="546.44"
+      android:translateX="-0.01" android:translateY="-16"
+      android:scaleX="0.9442" android:scaleY="0.9442">
+    <!-- Border: the head stroked with the adaptive background gradient;
+         half of strokeWidth shows outside the head -->
+    <path android:pathData="@string/ic_launcher_path_head"
+        android:strokeWidth="73"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:fillColor">
+          <gradient android:type="linear"
+              android:startX="-30.19" android:startY="546.44"
+              android:endX="1054.21" android:endY="546.44"
+              android:startColor="@color/ic_launcher_gradient_start"
+              android:endColor="@color/ic_launcher_gradient_end"/>
+        </aapt:attr>
+        <aapt:attr name="android:strokeColor">
+          <gradient android:type="linear"
+              android:startX="-30.19" android:startY="546.44"
+              android:endX="1054.21" android:endY="546.44"
+              android:startColor="@color/ic_launcher_gradient_start"
+              android:endColor="@color/ic_launcher_gradient_end"/>
+        </aapt:attr>
+    </path>
     <!-- nose -->
     <path
         android:pathData="m449.7,748.1l125.5,0l-14.3,71.7l-95.6,0z"

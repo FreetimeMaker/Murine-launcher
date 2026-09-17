@@ -39,6 +39,8 @@ def frameworkStubs16 = resolveJitpackStub('16-r2')
 def frameworkStubs17 = resolveJitpackStub('17-r2')
 
 apply plugin: 'com.google.protobuf'
+// Keep the launcher icons' anydpi-v26 versioned so pre-Oreo lookups ("force legacy icons") get the legacy icon
+apply from: 'gradle/legacy-icon.gradle'
 
 android {
     def (sdkMajor, sdkMinor) = COMPILE_SDK.tokenize('.')
