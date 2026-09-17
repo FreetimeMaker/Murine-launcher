@@ -104,6 +104,7 @@ html, body, img, svg, picture, video {
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;  /* no blue flash when tapping on mobile */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -535,8 +536,15 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   background: none;
   cursor: pointer;
+  outline: none;
   transform-style: preserve-3d;
   transition: transform .8s cubic-bezier(.2,.7,.2,1);
+}
+
+.hero-icon-flip:focus-visible {  /* keep a ring for keyboard users */
+  outline: 2px solid var(--md-primary);
+  outline-offset: 8px;
+  border-radius: var(--md-shape-md);
 }
 
 .hero-icon-wrapper.flipped .hero-icon-flip {
