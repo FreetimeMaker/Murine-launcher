@@ -25,12 +25,20 @@ title: Home
       </div>
     </div>
     <div class="hero-visual">
-      <div class="hero-icon-wrapper">
-        <img src="https://raw.githubusercontent.com/alesimula/Murine-launcher/refs/heads/main/image/app_icon/icon_browser_fullsize.svg" alt="Murine Launcher icon">
+      <div class="hero-icon-wrapper" id="heroIcon">
+        <button class="hero-icon-flip" aria-label="Flip the icon">
+          <img class="hero-icon-face" src="{{ site.icon_url }}" alt="Murine Launcher icon">
+          <img class="hero-icon-face hero-icon-back" src="{{ site.icon_freeform_url }}" alt="Murine Launcher icon, freeform" aria-hidden="true">
+        </button>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  const heroIcon = document.getElementById('heroIcon');
+  heroIcon.addEventListener('click', () => heroIcon.classList.toggle('flipped'));
+</script>
 
 <!-- Features -->
 <section class="features-section">

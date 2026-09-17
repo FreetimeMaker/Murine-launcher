@@ -523,13 +523,42 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   width: 280px;
   height: 280px;
+  perspective: 1000px;
+  animation: heroFloat 6s ease-in-out infinite;
 }
 
-.hero-icon-wrapper img {
+/* Tap to flip between the square icon and the freeform one */
+.hero-icon-flip {
   width: 100%;
   height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform .8s cubic-bezier(.2,.7,.2,1);
+}
+
+.hero-icon-wrapper.flipped .hero-icon-flip {
+  transform: rotateY(180deg);
+}
+
+.hero-icon-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
   filter: drop-shadow(0 16px 48px rgba(128,50,200,.30));
-  animation: heroFloat 6s ease-in-out infinite;
+}
+
+.hero-icon-back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-icon-wrapper { animation: none; }
+  .hero-icon-flip { transition: none; }
 }
 
 @keyframes heroFloat {
