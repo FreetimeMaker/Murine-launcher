@@ -12,6 +12,28 @@
   <group android:pivotX="512.01" android:pivotY="546.44"
       android:translateX="-0.01" android:translateY="-16"
       android:scaleX="0.9442" android:scaleY="0.9442">
+    <!-- Shadow: the stroked head shifted down in steps; the translucent copies add up,
+         so it fades out towards the bottom -->
+    <group android:translateY="14">
+      <path android:pathData="@string/ic_launcher_path_head"
+          android:strokeWidth="73" android:strokeColor="#15000000"
+          android:strokeLineJoin="round"/>
+    </group>
+    <group android:translateY="21">
+      <path android:pathData="@string/ic_launcher_path_head"
+          android:strokeWidth="73" android:strokeColor="#10000000"
+          android:strokeLineJoin="round"/>
+    </group>
+    <group android:translateY="28">
+      <path android:pathData="@string/ic_launcher_path_head"
+          android:strokeWidth="73" android:strokeColor="#11000000"
+          android:strokeLineJoin="round"/>
+    </group>
+    <group android:translateY="35">
+      <path android:pathData="@string/ic_launcher_path_head"
+          android:strokeWidth="73" android:strokeColor="#0F000000"
+          android:strokeLineJoin="round"/>
+    </group>
     <!-- Border: the head stroked with the adaptive background gradient;
          half of strokeWidth shows outside the head -->
     <path android:pathData="@string/ic_launcher_path_head"
