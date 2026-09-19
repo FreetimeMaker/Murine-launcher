@@ -16,6 +16,12 @@ enum class SearchProvider(
     val homepageUrl: String,
     val iconRes: Int
 ) {
+    APPS_ONLY(
+        displayName = "Apps only",
+        searchUrlTemplate = "",
+        homepageUrl = "",
+        iconRes = R.drawable.ic_murine_search_provider_apps
+    ),
     CUSTOM(
         displayName = "Custom",
         searchUrlTemplate = "",
@@ -64,6 +70,9 @@ enum class SearchProvider(
         homepageUrl = "https://www.bing.com",
         iconRes = R.drawable.ic_murine_search_provider_bing
     );
+
+    /** False for [APPS_ONLY], which never leaves the launcher. */
+    val searchesWeb: Boolean get() = this != APPS_ONLY
 
     fun buildSearchUrl(context: Context, query: String): String {
         var searchUrlTemplate = if (this.searchUrlTemplate.isBlank())

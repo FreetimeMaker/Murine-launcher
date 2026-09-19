@@ -9,6 +9,11 @@ object SearchBarConfig {
      * text-to-speech / voice recognizer instead of Google Assistant.
      * Enabled by default.
      */
-    @JvmField
-    var SEARCH_MICBUTTON_TTS: Boolean = true
+    const val SEARCH_MICBUTTON_TTS: Boolean = true
+
+    /**
+     * Rows shown in the search box while typing;
+     * Set to -1 to leave uncapped.
+     */
+    const val MAX_SEARCH_RESULTS: Int = -1
 }

@@ -7,25 +7,33 @@
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp">
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:id="@+id/search_row_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:scaleType="fitCenter"
+        android:padding="6dp"
         android:src="@drawable/ic_allapps_search"
         android:tint="?android:attr/textColorSecondary" />
 
     <TextView
-        android:id="@+id/history_text"
+        android:id="@+id/search_row_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
 
     <ImageView
-        android:id="@+id/history_delete"
+        android:id="@+id/search_row_delete"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginStart="8dp"

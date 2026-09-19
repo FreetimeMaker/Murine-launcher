@@ -34,6 +34,8 @@ import com.android.launcher3.search.StringMatcherUtility;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The default search implementation.
@@ -81,27 +83,30 @@ public class DefaultAppSearchAlgorithm implements SearchAlgorithm<AdapterItem> {
     }
 
     /**
-     * Filters {@link AppInfo}s matching specified query
+     * Filters {@link AppInfo}s matching specified query;
+     * @see {@link #getTitleMatchResult} for pre-wrapped {@link AdapterItem} list.
      */
     @AnyThread
-    public static ArrayList<AdapterItem> getTitleMatchResult(Context context, List<AppInfo> apps, String query) {
+    public static Stream<AppInfo> getTitleMatchApps(Context context, List<AppInfo> apps, String query) {
         // Do an intersection of the words in the query and each title, and filter out all the
         // apps that don't match all of the words in the query.
         final String queryTextLower = query.toLowerCase();
-        final ArrayList<AdapterItem> result = new ArrayList<>();
-        StringMatcherUtility.StringMatcher matcher =
-                StringMatcherUtility.StringMatcher.getInstance();
-        UserManager userManager = context.getSystemService(UserManager.class);
-        UserCache userCache = UserCache.INSTANCE.get(context);
+        final StringMatcherUtility.StringMatcher matcher = StringMatcherUtility.StringMatcher.getInstance();
+        final UserManager userManager = context.getSystemService(UserManager.class);
+        final UserCache userCache = UserCache.INSTANCE.get(context);
 
-        int total = apps.size();
-        for (int i = 0; i < total; i++) {
-            AppInfo info = apps.get(i);
-            if (userCache.getUserInfo(info.user).isPrivate() && userManager.isQuietModeEnabled(info.user)) continue;
-            if (StringMatcherUtility.matches(queryTextLower, info.title.toString(), matcher)) {
-                result.add(AdapterItem.asApp(info));
-            }
-        }
-        return result;
+        return apps.stream()
+                .filter(info -> !(userCache.getUserInfo(info.user).isPrivate() && userManager.isQuietModeEnabled(info.user)))
+                .filter(info -> StringMatcherUtility.matches(queryTextLower, info.title.toString(), matcher));
+    }
+
+    /**
+     * {@link #getTitleMatchApps} wrapped as all-apps {@link AdapterItem}s.
+     */
+    @AnyThread
+    public static ArrayList<AdapterItem> getTitleMatchResult(Context context, List<AppInfo> apps, String query) {
+        return getTitleMatchApps(context, apps, query)
+                .map(AdapterItem::asApp)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

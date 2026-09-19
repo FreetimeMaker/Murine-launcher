@@ -5,7 +5,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
-import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceScreen
 import androidx.preference.TwoStatePreference
 import app.murinelauncher.graphics.WorkspaceBlurUtils
@@ -71,7 +70,11 @@ public final class SettingsQsbFragment: AbstractSettingsFragment() {
                 preference as RadioGroupPreference
                 preference.asEnum(SearchProvider::class.java).apply {
                     setDefaultValue(LauncherPrefs.QSB_SEARCH_PROVIDER.defaultValue)
-                    setTextProvider { _, provider -> provider.displayName }
+                    setTextProvider { ctx, provider ->
+                        if (provider == SearchProvider.APPS_ONLY)
+                            ctx.getString(R.string.pref_qsb_provider_apps_only)
+                        else provider.displayName
+                    }
                     setIconProvider { ctx, provider -> AppCompatResources.getDrawable(ctx, provider.iconRes) }
                     setOnSelected { provider ->
                         customProviderPref?.isVisible = provider == SearchProvider.CUSTOM

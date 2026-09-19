@@ -4,7 +4,10 @@ import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.AttributeSet
 import android.util.Log
 import android.view.KeyEvent
@@ -13,9 +16,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,8 +33,11 @@ import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
+import com.android.launcher3.allapps.search.DefaultAppSearchAlgorithm
+import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.views.ActivityContext
 import org.json.JSONArray
+import java.util.stream.Collectors
 
 class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     AbstractFloatingView(context, attrs) {
@@ -42,6 +50,7 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     private var isBlurEnabled = false
     private var maxAlpha = 0.9f
     private var maxContainerHeight = 0
+    private var topResult: AppInfo? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -53,7 +62,7 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                 (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER)
             ) {
-                performSearch(searchInput.text.toString())
+                onSubmit()
                 true
             } else {
                 false
@@ -72,10 +81,73 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
             }
         })
 
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) = onQueryChanged(s?.toString().orEmpty())
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
         setupHistory()
     }
 
+    /**
+     * Enter / the IME search key. With a web provider this searches the web as before;
+     * in [SearchProvider.APPS_ONLY] it opens the first app result, like the drawer search does.
+     */
+    private fun onSubmit() {
+        val query = searchInput.text.toString()
+        if (SearchProvider.current.searchesWeb) performSearch(query)
+        else topResult?.let { launchApp(it, searchInput) }
+    }
+
+    private fun onQueryChanged(query: String) {
+        if (query.isBlank()) {
+            topResult = null
+            setupHistory()
+        } else {
+            val max = SearchBarConfig.MAX_SEARCH_RESULTS
+            val unbounded = max < 0
+            // The web row, when shown, is always first and counts towards the limit
+            val webRow = SearchProvider.current.searchesWeb && (unbounded || max > 0)
+            val appSlots = if (unbounded) Long.MAX_VALUE else (max - if (webRow) 1 else 0).toLong()
+            val apps = launcher.appsView?.appsStore?.apps?.let { store ->
+                DefaultAppSearchAlgorithm.getTitleMatchApps(context, store.asList(), query)
+                    .limit(appSlots)
+                    .collect(Collectors.toList())
+            }.orEmpty()
+            topResult = apps.firstOrNull()
+
+            if (!webRow && apps.isEmpty()) {
+                // APPS_ONLY with nothing matching
+                historyList.visibility = View.GONE
+            } else {
+                historyList.visibility = View.VISIBLE
+                if (historyList.layoutManager == null) {
+                    historyList.layoutManager = LinearLayoutManager(context)
+                }
+                historyList.adapter = ResultsAdapter(
+                    webQuery = if (webRow) query else null,
+                    providerIcon = AppCompatResources.getDrawable(context, SearchProvider.current.iconRes),
+                    apps = apps,
+                    onWeb = { performSearch(query) },
+                    onApp = { app, view -> launchApp(app, view) }
+                )
+            }
+        }
+        resizeContainerIfNeeded()
+    }
+
+    private fun launchApp(app: AppInfo, view: View) {
+        searchInput.hideKeyboard()
+        launcher.startActivitySafely(view, app.getIntent(), app)
+        close(true)
+    }
+
     private fun setupHistory() {
+        if (!SearchProvider.current.searchesWeb) {
+            historyList.visibility = View.GONE
+            return
+        }
         val history = trimHistory(launcherPrefs)
         if (history.isNotEmpty()) {
             historyList.visibility = View.VISIBLE
@@ -96,10 +168,10 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     private fun resizeContainerIfNeeded() {
         if (maxContainerHeight <= 0) return
         val lp = container.layoutParams
-        if (lp.height == ViewGroup.LayoutParams.WRAP_CONTENT) return
-        // Temporarily set wrap_content to measure height
-        lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-        container.requestLayout()
+        if (lp.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            container.requestLayout()
+        }
         container.post {
             // Re-cap if content still exceeds the limit
             if (container.height > maxContainerHeight) {
@@ -147,13 +219,10 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
         container.alpha = 0f
         isBlurEnabled = LauncherPrefs.QSB_BUBBLE_BLUR.get(launcher)
         maxAlpha = LauncherPrefs.QSB_BUBBLE_ALPHA.get(launcher) / 100f
+        maxContainerHeight = resources.displayMetrics.heightPixels / 2
         container.post {
-            val screenHeight = resources.displayMetrics.heightPixels
-            val maxAllowedHeight = (screenHeight) / 2
-
-            maxContainerHeight = maxAllowedHeight
-            if (container.height > maxAllowedHeight) {
-                container.layoutParams.height = maxAllowedHeight
+            if (container.height > maxContainerHeight) {
+                container.layoutParams.height = maxContainerHeight
                 container.requestLayout()
                 container.post { startEnterAnimation() }
             } else {
@@ -184,6 +253,52 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
         animator.translationY(0f).setDuration(300).start()
     }
 
+    private class ResultsAdapter(
+        private val webQuery: String?,
+        private val providerIcon: Drawable?,
+        private val apps: List<AppInfo>,
+        private val onWeb: () -> Unit,
+        private val onApp: (AppInfo, View) -> Unit
+    ) : RecyclerView.Adapter<ResultsAdapter.ViewHolder>() {
+
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val icon: ImageView = view.findViewById(R.id.search_row_icon)
+            val textView: TextView = view.findViewById(R.id.search_row_text)
+            val defaultTint = icon.imageTintList
+
+            init {
+                view.findViewById<View>(R.id.search_row_delete).visibility = View.GONE
+                // No padding unlike the history glyph's inset
+                icon.setPadding(0, 0, 0, 0)
+            }
+        }
+
+        private val webRows = if (webQuery == null) 0 else 1
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.murine_search_row, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            if (position < webRows) {
+                holder.icon.imageTintList = holder.defaultTint
+                holder.icon.setImageDrawable(providerIcon)
+                holder.textView.text = webQuery
+                holder.itemView.setOnClickListener { onWeb() }
+                return
+            }
+            val app = apps[position - webRows]
+            holder.icon.imageTintList = null
+            holder.icon.setImageDrawable(app.bitmap.newIcon(holder.itemView.context))
+            holder.textView.text = app.title
+            holder.itemView.setOnClickListener { onApp(app, holder.itemView) }
+        }
+
+        override fun getItemCount() = webRows + apps.size
+    }
+
     private class HistoryAdapter(
         private val items: MutableList<String>,
         private val onClick: (String) -> Unit,
@@ -191,13 +306,13 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val textView: TextView = view.findViewById(R.id.history_text)
-            val deleteButton: View = view.findViewById(R.id.history_delete)
+            val textView: TextView = view.findViewById(R.id.search_row_text)
+            val deleteButton: View = view.findViewById(R.id.search_row_delete)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.murine_search_history_item, parent, false)
+                .inflate(R.layout.murine_search_row, parent, false)
             return ViewHolder(view)
         }
 
