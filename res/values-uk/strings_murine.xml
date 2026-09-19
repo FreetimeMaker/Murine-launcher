@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Показувати рядок пошуку</string>
     <string name="pref_qsb_search_provider_title">Пошукова система</string>
+    <string name="pref_qsb_provider_apps_only">Лише додатки</string>
     <string name="pref_qsb_enable_lens_title">Увімкнути Lens</string>
     <string name="pref_qsb_enable_lens_summary">Показувати кнопку Google Lens у швидкому пошуку</string>
     <string name="pref_qsb_box_blur">Розмиття панелі пошуку</string>

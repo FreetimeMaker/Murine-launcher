@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Suchleiste anzeigen</string>
     <string name="pref_qsb_search_provider_title">Suchmaschine</string>
+    <string name="pref_qsb_provider_apps_only">Nur Apps</string>
     <string name="pref_qsb_enable_lens_title">Lens aktivieren</string>
     <string name="pref_qsb_enable_lens_summary">Google Lens-Schaltfläche in der Schnellsuche anzeigen</string>
     <string name="pref_qsb_box_blur">Suchblase weichzeichnen</string>

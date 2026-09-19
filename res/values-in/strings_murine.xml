@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Tampilkan bilah pencarian</string>
     <string name="pref_qsb_search_provider_title">Mesin pencarian</string>
+    <string name="pref_qsb_provider_apps_only">Hanya aplikasi</string>
     <string name="pref_qsb_enable_lens_title">Aktifkan Lens</string>
     <string name="pref_qsb_enable_lens_summary">Tampilkan tombol Google Lens di pencarian cepat</string>
     <string name="pref_qsb_box_blur">Buramkan gelembung pencarian</string>

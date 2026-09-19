@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Vis søkefelt</string>
     <string name="pref_qsb_search_provider_title">Søkeleverandør</string>
+    <string name="pref_qsb_provider_apps_only">Bare apper</string>
     <string name="pref_qsb_enable_lens_title">Slå på Lens</string>
     <string name="pref_qsb_enable_lens_summary">Vis Google Lens-knappen i hurtigsøket</string>
     <string name="pref_qsb_box_blur">Gjør søkeboblen uskarp</string>

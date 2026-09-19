@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">הצגת סרגל החיפוש</string>
     <string name="pref_qsb_search_provider_title">מנוע חיפוש</string>
+    <string name="pref_qsb_provider_apps_only">אפליקציות בלבד</string>
     <string name="pref_qsb_enable_lens_title">הפעלת Lens</string>
     <string name="pref_qsb_enable_lens_summary">הצגת לחצן Google Lens בחיפוש המהיר</string>
     <string name="pref_qsb_box_blur">טשטוש בועת החיפוש</string>

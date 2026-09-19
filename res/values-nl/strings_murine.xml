@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Zoekbalk tonen</string>
     <string name="pref_qsb_search_provider_title">Zoekmachine</string>
+    <string name="pref_qsb_provider_apps_only">Alleen apps</string>
     <string name="pref_qsb_enable_lens_title">Lens inschakelen</string>
     <string name="pref_qsb_enable_lens_summary">Google Lens-knop tonen in snelzoeken</string>
     <string name="pref_qsb_box_blur">Zoekballon vervagen</string>

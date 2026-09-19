@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">検索バーを表示</string>
     <string name="pref_qsb_search_provider_title">検索エンジン</string>
+    <string name="pref_qsb_provider_apps_only">アプリのみ</string>
     <string name="pref_qsb_enable_lens_title">Lens を有効にする</string>
     <string name="pref_qsb_enable_lens_summary">クイック検索に Google Lens ボタンを表示します</string>
     <string name="pref_qsb_box_blur">検索バブルをぼかす</string>

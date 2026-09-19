@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Pokaż pasek wyszukiwania</string>
     <string name="pref_qsb_search_provider_title">Wyszukiwarka</string>
+    <string name="pref_qsb_provider_apps_only">Tylko aplikacje</string>
     <string name="pref_qsb_enable_lens_title">Włącz Lens</string>
     <string name="pref_qsb_enable_lens_summary">Pokaż przycisk Google Lens w szybkim wyszukiwaniu</string>
     <string name="pref_qsb_box_blur">Rozmycie dymka wyszukiwania</string>

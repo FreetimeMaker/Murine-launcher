@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Hiện thanh tìm kiếm</string>
     <string name="pref_qsb_search_provider_title">Công cụ tìm kiếm</string>
+    <string name="pref_qsb_provider_apps_only">Chỉ ứng dụng</string>
     <string name="pref_qsb_enable_lens_title">Bật Lens</string>
     <string name="pref_qsb_enable_lens_summary">Hiện nút Google Lens trong ô tìm kiếm nhanh</string>
     <string name="pref_qsb_box_blur">Làm mờ bong bóng tìm kiếm</string>

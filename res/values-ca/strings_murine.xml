@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">Mostra la barra de cerca</string>
     <string name="pref_qsb_search_provider_title">Motor de cerca</string>
+    <string name="pref_qsb_provider_apps_only">Només aplicacions</string>
     <string name="pref_qsb_enable_lens_title">Activa Lens</string>
     <string name="pref_qsb_enable_lens_summary">Mostra el botó de Google Lens a la cerca ràpida</string>
     <string name="pref_qsb_box_blur">Difumina la bombolla de cerca</string>

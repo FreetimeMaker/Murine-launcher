@@ -99,6 +99,7 @@
     <!-- Murine search bar preferences -->
     <string name="pref_qsb_show_search_bar_title">검색창 표시</string>
     <string name="pref_qsb_search_provider_title">검색 엔진</string>
+    <string name="pref_qsb_provider_apps_only">앱만</string>
     <string name="pref_qsb_enable_lens_title">Lens 사용</string>
     <string name="pref_qsb_enable_lens_summary">빠른 검색에 Google Lens 버튼 표시</string>
     <string name="pref_qsb_box_blur">검색 버블 흐리게</string>
