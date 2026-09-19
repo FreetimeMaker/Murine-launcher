@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">覆寫格線寬度</string>
     <string name="pref_drawer_grid_width_override_summary">在應用程式抽屜中使用自訂欄數</string>
     <string name="pref_drawer_padding_title">兩側邊距</string>
+    <string name="pref_drawer_search_autofocus_title">自動搜尋</string>
+    <string name="pref_drawer_search_autofocus_summary">開啟應用程式抽屜時顯示鍵盤</string>
 
     <string name="pref_blur_preview_title">模糊預覽模式</string>
     <string name="pref_blur_preview_desc">拖曳圖示與小工具時模糊桌布</string>

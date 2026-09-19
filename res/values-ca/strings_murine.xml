@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Substitueix l\'amplada de la graella</string>
     <string name="pref_drawer_grid_width_override_summary">Fes servir un nombre de columnes personalitzat al calaix d\'aplicacions</string>
     <string name="pref_drawer_padding_title">Marge lateral</string>
+    <string name="pref_drawer_search_autofocus_title">Cerca automàtica</string>
+    <string name="pref_drawer_search_autofocus_summary">Obre el teclat en obrir el calaix d\'aplicacions</string>
 
     <string name="pref_blur_preview_title">Difuminat en mode previsualització</string>
     <string name="pref_blur_preview_desc">Difumina el fons de pantalla mentre arrossegues icones i widgets</string>

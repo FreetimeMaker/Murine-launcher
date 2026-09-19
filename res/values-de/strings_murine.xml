@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Rasterbreite überschreiben</string>
     <string name="pref_drawer_grid_width_override_summary">Eigene Spaltenanzahl in der App-Übersicht verwenden</string>
     <string name="pref_drawer_padding_title">Seitlicher Abstand</string>
+    <string name="pref_drawer_search_autofocus_title">Automatische Suche</string>
+    <string name="pref_drawer_search_autofocus_summary">Tastatur beim Öffnen der App-Übersicht einblenden</string>
 
     <string name="pref_blur_preview_title">Vorschau weichzeichnen</string>
     <string name="pref_blur_preview_desc">Hintergrund beim Ziehen von Symbolen und Widgets weichzeichnen</string>

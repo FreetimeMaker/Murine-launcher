@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Remplacer la largeur de la grille</string>
     <string name="pref_drawer_grid_width_override_summary">Utiliser un nombre de colonnes personnalisé dans le tiroir d\'applications</string>
     <string name="pref_drawer_padding_title">Marge latérale</string>
+    <string name="pref_drawer_search_autofocus_title">Recherche automatique</string>
+    <string name="pref_drawer_search_autofocus_summary">Ouvrir le clavier à l\'ouverture du tiroir d\'applications</string>
 
     <string name="pref_blur_preview_title">Flou en mode aperçu</string>
     <string name="pref_blur_preview_desc">Flouter le fond d\'écran pendant le déplacement des icônes et des widgets</string>

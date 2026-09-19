@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Ghi đè chiều rộng lưới</string>
     <string name="pref_drawer_grid_width_override_summary">Dùng số cột tùy chỉnh trong ngăn ứng dụng</string>
     <string name="pref_drawer_padding_title">Lề hai bên</string>
+    <string name="pref_drawer_search_autofocus_title">Tìm kiếm tự động</string>
+    <string name="pref_drawer_search_autofocus_summary">Mở bàn phím khi mở ngăn ứng dụng</string>
 
     <string name="pref_blur_preview_title">Chế độ xem trước làm mờ</string>
     <string name="pref_blur_preview_desc">Làm mờ hình nền khi kéo biểu tượng và tiện ích</string>

@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Перевизначити ширину сітки</string>
     <string name="pref_drawer_grid_width_override_summary">Використовувати власну кількість стовпців у меню додатків</string>
     <string name="pref_drawer_padding_title">Бічні відступи</string>
+    <string name="pref_drawer_search_autofocus_title">Автоматичний пошук</string>
+    <string name="pref_drawer_search_autofocus_summary">Відкривати клавіатуру під час відкриття меню додатків</string>
 
     <string name="pref_blur_preview_title">Розмиття в режимі попереднього перегляду</string>
     <string name="pref_blur_preview_desc">Розмивати шпалери під час перетягування значків і віджетів</string>

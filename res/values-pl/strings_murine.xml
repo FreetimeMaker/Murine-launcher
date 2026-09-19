@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Zastąp szerokość siatki</string>
     <string name="pref_drawer_grid_width_override_summary">Użyj własnej liczby kolumn w szufladzie aplikacji</string>
     <string name="pref_drawer_padding_title">Odstęp boczny</string>
+    <string name="pref_drawer_search_autofocus_title">Automatyczne wyszukiwanie</string>
+    <string name="pref_drawer_search_autofocus_summary">Otwórz klawiaturę przy otwieraniu szuflady aplikacji</string>
 
     <string name="pref_blur_preview_title">Rozmycie w trybie podglądu</string>
     <string name="pref_blur_preview_desc">Rozmywaj tapetę podczas przeciągania ikon i widżetów</string>

@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Izgara genişliğini geçersiz kıl</string>
     <string name="pref_drawer_grid_width_override_summary">Uygulama çekmecesinde özel sütun sayısı kullan</string>
     <string name="pref_drawer_padding_title">Yan boşluk</string>
+    <string name="pref_drawer_search_autofocus_title">Otomatik arama</string>
+    <string name="pref_drawer_search_autofocus_summary">Uygulama çekmecesi açıldığında klavyeyi aç</string>
 
     <string name="pref_blur_preview_title">Önizleme modunda bulanıklık</string>
     <string name="pref_blur_preview_desc">Simge ve widget sürüklerken duvar kağıdını bulanıklaştır</string>

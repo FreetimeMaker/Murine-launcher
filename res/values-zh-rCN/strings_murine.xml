@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">覆盖网格宽度</string>
     <string name="pref_drawer_grid_width_override_summary">在应用抽屉中使用自定义列数</string>
     <string name="pref_drawer_padding_title">两侧边距</string>
+    <string name="pref_drawer_search_autofocus_title">自动搜索</string>
+    <string name="pref_drawer_search_autofocus_summary">打开应用抽屉时显示键盘</string>
 
     <string name="pref_blur_preview_title">模糊预览模式</string>
     <string name="pref_blur_preview_desc">拖动图标和小部件时模糊壁纸</string>

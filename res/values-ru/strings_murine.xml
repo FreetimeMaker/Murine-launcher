@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Переопределить ширину сетки</string>
     <string name="pref_drawer_grid_width_override_summary">Использовать своё количество столбцов в меню приложений</string>
     <string name="pref_drawer_padding_title">Боковые отступы</string>
+    <string name="pref_drawer_search_autofocus_title">Автоматический поиск</string>
+    <string name="pref_drawer_search_autofocus_summary">Открывать клавиатуру при открытии меню приложений</string>
 
     <string name="pref_blur_preview_title">Размытие в режиме предпросмотра</string>
     <string name="pref_blur_preview_desc">Размывать обои при перетаскивании значков и виджетов</string>

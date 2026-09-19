@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Substituir largura da grade</string>
     <string name="pref_drawer_grid_width_override_summary">Usar um número personalizado de colunas na gaveta de apps</string>
     <string name="pref_drawer_padding_title">Espaçamento lateral</string>
+    <string name="pref_drawer_search_autofocus_title">Pesquisa automática</string>
+    <string name="pref_drawer_search_autofocus_summary">Abrir o teclado ao abrir a gaveta de apps</string>
 
     <string name="pref_blur_preview_title">Desfoque no modo de visualização</string>
     <string name="pref_blur_preview_desc">Desfocar o plano de fundo ao arrastar ícones e widgets</string>

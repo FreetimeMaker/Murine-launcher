@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">I-override ang lapad ng grid</string>
     <string name="pref_drawer_grid_width_override_summary">Gumamit ng custom na bilang ng hanay sa app drawer</string>
     <string name="pref_drawer_padding_title">Espasyo sa gilid</string>
+    <string name="pref_drawer_search_autofocus_title">Awtomatikong paghahanap</string>
+    <string name="pref_drawer_search_autofocus_summary">Buksan ang keyboard kapag binuksan ang app drawer</string>
 
     <string name="pref_blur_preview_title">Blur preview mode</string>
     <string name="pref_blur_preview_desc">I-blur ang wallpaper habang hinihila ang mga icon at widget</string>

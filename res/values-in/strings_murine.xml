@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Ganti lebar petak</string>
     <string name="pref_drawer_grid_width_override_summary">Gunakan jumlah kolom khusus di laci aplikasi</string>
     <string name="pref_drawer_padding_title">Jarak samping</string>
+    <string name="pref_drawer_search_autofocus_title">Pencarian otomatis</string>
+    <string name="pref_drawer_search_autofocus_summary">Buka keyboard saat laci aplikasi dibuka</string>
 
     <string name="pref_blur_preview_title">Buram pada mode pratinjau</string>
     <string name="pref_blur_preview_desc">Buramkan wallpaper saat menyeret ikon dan widget</string>

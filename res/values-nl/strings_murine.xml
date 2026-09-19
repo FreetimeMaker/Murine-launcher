@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Rasterbreedte overschrijven</string>
     <string name="pref_drawer_grid_width_override_summary">Een eigen aantal kolommen in het app-overzicht gebruiken</string>
     <string name="pref_drawer_padding_title">Zijmarge</string>
+    <string name="pref_drawer_search_autofocus_title">Automatisch zoeken</string>
+    <string name="pref_drawer_search_autofocus_summary">Het toetsenbord openen bij het openen van het app-overzicht</string>
 
     <string name="pref_blur_preview_title">Vervaging in voorbeeldmodus</string>
     <string name="pref_blur_preview_desc">Achtergrond vervagen tijdens het slepen van pictogrammen en widgets</string>

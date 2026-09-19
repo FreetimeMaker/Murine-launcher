@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">עקיפת רוחב הרשת</string>
     <string name="pref_drawer_grid_width_override_summary">שימוש במספר עמודות מותאם במגירת האפליקציות</string>
     <string name="pref_drawer_padding_title">ריווח צדדי</string>
+    <string name="pref_drawer_search_autofocus_title">חיפוש אוטומטי</string>
+    <string name="pref_drawer_search_autofocus_summary">פתיחת המקלדת בעת פתיחת מגירת האפליקציות</string>
 
     <string name="pref_blur_preview_title">טשטוש במצב תצוגה מקדימה</string>
     <string name="pref_blur_preview_desc">טשטוש הטפט בזמן גרירת סמלים וווידג\'טים</string>

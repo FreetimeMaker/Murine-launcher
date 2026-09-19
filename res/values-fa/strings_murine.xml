@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">لغو عرض شبکه</string>
     <string name="pref_drawer_grid_width_override_summary">استفاده از تعداد ستون دلخواه در کشوی برنامه‌ها</string>
     <string name="pref_drawer_padding_title">حاشیه کناری</string>
+    <string name="pref_drawer_search_autofocus_title">جست‌وجوی خودکار</string>
+    <string name="pref_drawer_search_autofocus_summary">باز کردن صفحه‌کلید هنگام باز شدن کشوی برنامه‌ها</string>
 
     <string name="pref_blur_preview_title">تاری در حالت پیش‌نمایش</string>
     <string name="pref_blur_preview_desc">تار کردن کاغذدیواری هنگام کشیدن نمادها و ابزارک‌ها</string>

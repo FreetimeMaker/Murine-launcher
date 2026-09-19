@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">Overstyr rutenettbredde</string>
     <string name="pref_drawer_grid_width_override_summary">Bruk et egendefinert antall kolonner i appskuffen</string>
     <string name="pref_drawer_padding_title">Sidemarg</string>
+    <string name="pref_drawer_search_autofocus_title">Automatisk søk</string>
+    <string name="pref_drawer_search_autofocus_summary">Åpne tastaturet når appskuffen åpnes</string>
 
     <string name="pref_blur_preview_title">Uskarp forhåndsvisning</string>
     <string name="pref_blur_preview_desc">Gjør bakgrunnen uskarp når ikoner og moduler dras</string>

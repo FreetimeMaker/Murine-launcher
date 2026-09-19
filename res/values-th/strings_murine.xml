@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">แทนที่ความกว้างของตาราง</string>
     <string name="pref_drawer_grid_width_override_summary">ใช้จำนวนคอลัมน์ที่กำหนดเองในลิ้นชักแอป</string>
     <string name="pref_drawer_padding_title">ระยะขอบด้านข้าง</string>
+    <string name="pref_drawer_search_autofocus_title">ค้นหาอัตโนมัติ</string>
+    <string name="pref_drawer_search_autofocus_summary">เปิดแป้นพิมพ์เมื่อเปิดลิ้นชักแอป</string>
 
     <string name="pref_blur_preview_title">โหมดแสดงตัวอย่างแบบเบลอ</string>
     <string name="pref_blur_preview_desc">เบลอวอลเปเปอร์ขณะลากไอคอนและวิดเจ็ต</string>

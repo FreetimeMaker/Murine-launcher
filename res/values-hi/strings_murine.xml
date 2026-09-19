@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">ग्रिड चौड़ाई अधिलेखित करें</string>
     <string name="pref_drawer_grid_width_override_summary">ऐप ड्रॉअर में कस्टम स्तंभ संख्या का उपयोग करें</string>
     <string name="pref_drawer_padding_title">किनारे का अंतर</string>
+    <string name="pref_drawer_search_autofocus_title">स्वचालित खोज</string>
+    <string name="pref_drawer_search_autofocus_summary">ऐप ड्रॉअर खुलने पर कीबोर्ड खोलें</string>
 
     <string name="pref_blur_preview_title">धुंधला पूर्वावलोकन मोड</string>
     <string name="pref_blur_preview_desc">आइकन और विजेट खींचते समय वॉलपेपर धुंधला करें</string>

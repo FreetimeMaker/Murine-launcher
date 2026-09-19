@@ -74,6 +74,8 @@
     <string name="pref_drawer_grid_width_override_title">グリッドの幅を上書き</string>
     <string name="pref_drawer_grid_width_override_summary">アプリ一覧で独自の列数を使用します</string>
     <string name="pref_drawer_padding_title">左右の余白</string>
+    <string name="pref_drawer_search_autofocus_title">自動検索</string>
+    <string name="pref_drawer_search_autofocus_summary">アプリ一覧を開いたときにキーボードを表示します</string>
 
     <string name="pref_blur_preview_title">プレビュー時のぼかし</string>
     <string name="pref_blur_preview_desc">アイコンやウィジェットのドラッグ中に壁紙をぼかします</string>
