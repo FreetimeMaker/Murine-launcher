@@ -187,7 +187,6 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
         dragIcon = icon
 
         searchInput.hideKeyboard()
-        launcher.dragController.addDragListener(this)
         // Hidden until dragging starts: clip, as the cancel animation resets alpha and visibility
         dragView = launcher.workspace.beginDragShared(
             icon, icon, this, app, DragPreviewProvider(icon), DragOptions()
@@ -207,7 +206,6 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     }
 
     override fun onDragEnd() {
-        launcher.dragController.removeDragListener(this)
         dragIcon?.let { launcher.dragLayer.removeView(it) }
         dragIcon = null
         dragView = null
@@ -299,8 +297,14 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
         return false
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        launcher.dragController.removeDragListener(this)
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        launcher.dragController.addDragListener(this)
 
         container.alpha = 0f
         isBlurEnabled = LauncherPrefs.QSB_BUBBLE_BLUR.get(launcher)
