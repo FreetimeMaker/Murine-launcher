@@ -4,6 +4,8 @@ import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.Point
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.text.Editable
@@ -14,8 +16,10 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -28,19 +32,29 @@ import app.murinelauncher.graphics.WorkspaceBlurUtils
 import app.murinelauncher.graphics.WorkspaceBlurUtils.Companion.isBlurDrawable
 import app.murinelauncher.widget.search.MurineSearchBarView.Companion.TAG
 import com.android.launcher3.AbstractFloatingView
+import com.android.launcher3.BubbleTextView
+import com.android.launcher3.DragSource
+import com.android.launcher3.DropTarget
 import com.android.launcher3.ExtendedEditText
+import com.android.launcher3.Flags
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.allapps.search.DefaultAppSearchAlgorithm
+import com.android.launcher3.dragndrop.DragController
+import com.android.launcher3.dragndrop.DragOptions
+import com.android.launcher3.dragndrop.DragView
+import com.android.launcher3.graphics.DragPreviewProvider
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_NOT_PINNABLE
+import com.android.launcher3.touch.ItemLongClickListener
 import com.android.launcher3.views.ActivityContext
-import org.json.JSONArray
 import java.util.stream.Collectors
+import org.json.JSONArray
 
 class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
-    AbstractFloatingView(context, attrs) {
+    AbstractFloatingView(context, attrs), DragSource, DragController.DragListener {
 
     private lateinit var searchInput: ExtendedEditText
     private lateinit var historyList: RecyclerView
@@ -51,6 +65,10 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     private var maxAlpha = 0.9f
     private var maxContainerHeight = 0
     private var topResult: AppInfo? = null
+    private var deferRemoval = false
+    private var dragIcon: BubbleTextView? = null
+    private var dragView: DragView<*>? = null
+    private val lastTouch = Point()
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -130,11 +148,73 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
                     providerIcon = AppCompatResources.getDrawable(context, SearchProvider.current.iconRes),
                     apps = apps,
                     onWeb = { performSearch(query) },
-                    onApp = { app, view -> launchApp(app, view) }
+                    onApp = { app, view -> launchApp(app, view) },
+                    onAppLongClick = { app -> startAppDrag(app) }
                 )
             }
         }
         resizeContainerIfNeeded()
+    }
+
+    /**
+     * Long-pressing a result shows the menu and drags the app to the home screen, like for the app drawer;
+     * @return always false so the touch keeps flowing to the drag controller.
+     */
+    private fun startAppDrag(app: AppInfo): Boolean {
+        if (!ItemLongClickListener.canStartDrag(launcher)) return false
+        if (!launcher.isDraggingEnabled) return false
+
+        val dp = launcher.deviceProfile
+        val dragLayer = launcher.dragLayer
+        // Inflate the drawer's own icon view
+        val icon = launcher.layoutInflater
+            .inflate(R.layout.all_apps_icon, dragLayer, false) as BubbleTextView
+        icon.applyFromApplicationInfo(app)
+        icon.alpha = 0f
+        dragLayer.addView(icon)
+
+        // Displayed a teeny tiny little up-left of the finger so it stays visible
+        val shift = (dp.allAppsIconSizePx * DRAG_ICON_SHIFT_RATIO).toInt()
+        val w = dp.allAppsCellWidthPx
+        val h = dp.allAppsCellHeightPx
+        val left = lastTouch.x - shift - w / 2
+        val top = lastTouch.y - shift - icon.paddingTop - dp.allAppsIconSizePx / 2
+        icon.measure(
+            MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY)
+        )
+        icon.layout(left, top, left + w, top + h)
+        dragIcon = icon
+
+        searchInput.hideKeyboard()
+        launcher.dragController.addDragListener(this)
+        // Hidden until dragging starts: clip, as the cancel animation resets alpha and visibility
+        dragView = launcher.workspace.beginDragShared(
+            icon, icon, this, app, DragPreviewProvider(icon), DragOptions()
+        ).also { it.clipBounds = Rect() }
+        // Zero its bounds, so a tap / scroll near it dismisses the popup instead of hitting the row behind
+        icon.layoutParams = icon.layoutParams.also { it.width = 0; it.height = 0 }
+        icon.layout(0, 0, 0, 0)
+        return false
+    }
+
+    override fun onDropCompleted(target: View?, d: DropTarget.DragObject?, success: Boolean) = Unit
+
+    override fun onDragStart(dragObject: DropTarget.DragObject?, options: DragOptions?) {
+        dragView?.clipBounds = null
+        deferRemoval = true // Removing mid-drag interferes with touch handling, defer removal
+        close(true)
+    }
+
+    override fun onDragEnd() {
+        launcher.dragController.removeDragListener(this)
+        dragIcon?.let { launcher.dragLayer.removeView(it) }
+        dragIcon = null
+        dragView = null
+        if (deferRemoval) {
+            deferRemoval = false
+            launcher.dragLayer.removeView(this)
+        }
     }
 
     private fun launchApp(app: AppInfo, view: View) {
@@ -193,18 +273,24 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
             if (container.background.isBlurDrawable) container.alpha = 1f
             else animator.alpha(0f)
             animator.setDuration(200)
-                .withEndAction { launcher.dragLayer.removeView(this) }
+                .withEndAction { removeSelf() }
                 .start()
             animate().alpha(0f).setDuration(200).start()
         } else {
-            launcher.dragLayer.removeView(this)
+            removeSelf()
         }
+    }
+
+    private fun removeSelf() {
+        // Stays attached until the drag ends: hide it to hide the blur backdrop.
+        if (deferRemoval) visibility = View.GONE else launcher.dragLayer.removeView(this)
     }
 
     override fun isOfType(type: Int): Boolean = type and TYPE_OPTIONS_POPUP != 0
 
     override fun onControllerInterceptTouchEvent(ev: MotionEvent): Boolean {
         if (ev.action == MotionEvent.ACTION_DOWN) {
+            lastTouch.set(ev.x.toInt(), ev.y.toInt())
             if (!launcher.dragLayer.isEventOverView(container, ev)) {
                 close(true)
                 return true
@@ -258,7 +344,8 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
         private val providerIcon: Drawable?,
         private val apps: List<AppInfo>,
         private val onWeb: () -> Unit,
-        private val onApp: (AppInfo, View) -> Unit
+        private val onApp: (AppInfo, View) -> Unit,
+        private val onAppLongClick: (AppInfo) -> Boolean
     ) : RecyclerView.Adapter<ResultsAdapter.ViewHolder>() {
 
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -287,6 +374,7 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
                 holder.icon.setImageDrawable(providerIcon)
                 holder.textView.text = webQuery
                 holder.itemView.setOnClickListener { onWeb() }
+                holder.itemView.setOnLongClickListener(null)   // nothing to drag on the web row
                 return
             }
             val app = apps[position - webRows]
@@ -294,6 +382,7 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
             holder.icon.setImageDrawable(app.bitmap.newIcon(holder.itemView.context))
             holder.textView.text = app.title
             holder.itemView.setOnClickListener { onApp(app, holder.itemView) }
+            holder.itemView.setOnLongClickListener { onAppLongClick(app) }
         }
 
         override fun getItemCount() = webRows + apps.size
@@ -335,6 +424,9 @@ class MurineSearchBoxView(context: Context, attrs: AttributeSet?) :
     }
 
     companion object {
+        /** How far up-left of the finger the dragged icon spawns, as a fraction of icon size. */
+        private const val DRAG_ICON_SHIFT_RATIO = 0.42f
+
 
         fun show(launcher: Launcher) {
             val view = launcher.layoutInflater.inflate(
