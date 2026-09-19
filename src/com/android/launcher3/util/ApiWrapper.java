@@ -247,6 +247,10 @@ public class ApiWrapper {
      * as HOME app, a toast asking the user to do the latter is shown.
      */
     public void assignDefaultHomeRole(Context context) {
+        if (!Utilities.ATLEAST_Q) {
+            // RoleManager was added in API 29.
+            return;
+        }
         RoleManager roleManager = context.getSystemService(RoleManager.class);
         assert roleManager != null;
         if (roleManager.isRoleAvailable(RoleManager.ROLE_HOME)

@@ -24,6 +24,7 @@ import android.os.UserManager;
 
 import androidx.annotation.IntDef;
 
+import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.pm.UserCache;
@@ -86,6 +87,10 @@ public abstract class UserProfileManager {
      * If {@link SecurityException} is thrown, prompts the user to set this launcher as HOME app.
      */
     private void setQuietModeSafely(boolean enable, UserHandle userHandle, Context context) {
+        if (!Utilities.ATLEAST_P) {
+            // UserManager#requestQuietModeEnabled was added in API 28.
+            return;
+        }
         try {
             mUserManager.requestQuietModeEnabled(enable, userHandle);
         } catch (SecurityException ex) {
