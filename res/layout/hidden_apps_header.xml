@@ -42,7 +42,6 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_marginEnd="@dimen/all_apps_tabs_button_horizontal_padding"
                 android:background="@drawable/all_apps_tabs_background"
                 android:textColor="@color/murine_all_apps_tab_text"
                 android:textSize="14sp"

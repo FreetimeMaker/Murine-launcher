@@ -42,6 +42,7 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
     private var tabAll: Button? = null
     private var tabHidden: Button? = null
     private var tabLocked: Button? = null
+    private var pendingLockPackage: String? = null
 
     override fun getPreferenceScreenResId() = R.xml.murine_prefs_hidden_apps
 
@@ -177,7 +178,9 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
                         isAppLocked = name in locked
                         if (name in lockable) {
                             onLockClick = {
-                                AppLock.requestSetAppLock(ctx, name.substringBefore('/'))
+                                pendingLockPackage = name.substringBefore('/').also { pkg ->
+                                    AppLock.requestSetAppLock(ctx, pkg)
+                                }
                             }
                         }
                         setOnPreferenceClickListener {
@@ -228,16 +231,25 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
 
     override fun onResume() {
         super.onResume()
-        // Re-read lock state after returning from the system lock/unlock dialog
-        // TODO maybe I could just check it for the last one the locking/unlocking was requested for
+        // Re-read lock state after returning from the system lock/unlock dialog (if necessary)
         val ctx = context ?: return
         val screen = preferenceScreen ?: return
+        // Coming back from the lock dialog only that app can have changed
+        val pkg = pendingLockPackage
+        pendingLockPackage = null
+        var changed = false
         for (i in 0 until screen.preferenceCount) {
             val pref = screen.getPreference(i) as? HiddenAppPreference ?: continue
-            if (pref.onLockClick != null) pref.isAppLocked = AppLock.isLocked(ctx, pref.key.substringBefore('/'))
+            if (pref.onLockClick == null) continue
+            val appPkg = pref.key.substringBefore('/')
+            if (pkg != null && appPkg != pkg) continue
+            val locked = AppLock.isLocked(ctx, appPkg)
+            if (pref.isAppLocked == locked) continue
+            pref.isAppLocked = locked
+            changed = true
         }
         // Lock state feeds the Protected tab's filter, so rows must be re-evaluated too.
-        applyFilter()
+        if (changed) applyFilter()
     }
 
     override fun onPause() {
