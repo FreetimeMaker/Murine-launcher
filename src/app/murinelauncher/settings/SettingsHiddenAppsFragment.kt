@@ -61,7 +61,6 @@ class SettingsHiddenAppsFragment : AbstractSettingsFragment() {
 
     /**
      * Toggle card for enabling the "search hidden apps" option
-     * TODO must be hidden via applyFilter when "Locked" tab is added
      */
     private fun addSearchHiddenToggle() {
         val ctx = requireContext()
