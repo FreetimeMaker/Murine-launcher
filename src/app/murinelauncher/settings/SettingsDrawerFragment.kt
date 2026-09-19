@@ -21,6 +21,7 @@ public final class SettingsDrawerFragment: AbstractSettingsFragment() {
         const val GRID_SIZE_WIDTH_DRAWER_OVERRIDE_SWITCH: String = "pref_grid_size_width_drawer_override_switch"
         const val GRID_SIZE_WIDTH_DRAWER_OVERRIDE: String = "pref_grid_size_width_drawer_override"
         const val DRAWER_PADDING: String = "pref_drawer_padding"
+        const val SEARCH_AUTOFOCUS: String = "pref_drawer_search_autofocus"
     }
 
     override fun getPreferenceScreenResId() = R.xml.murine_prefs_drawer

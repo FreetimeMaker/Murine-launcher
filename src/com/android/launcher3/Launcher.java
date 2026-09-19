@@ -1341,6 +1341,12 @@ public class Launcher extends StatefulActivity<LauncherState>
             mAllAppsSessionLogId = null;
         }
 
+        if (ALL_APPS.equals(state) && !ALL_APPS.equals(mPrevLauncherState)
+                && LauncherPrefs.DRAWER_SEARCH_AUTOFOCUS.get(this)) {
+            ExtendedEditText searchInput = mAppsView.getSearchUiManager().getEditText();
+            if (searchInput != null) searchInput.showKeyboard();
+        }
+
         // Set screen title for Talkback
         setTitle(state.getTitle());
     }

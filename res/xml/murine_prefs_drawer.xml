@@ -64,4 +64,13 @@
             app:showTicks="true" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/pref_subcategory_options">
+        <SwitchPreferenceCompat
+            android:key="pref_drawer_search_autofocus"
+            android:title="@string/pref_drawer_search_autofocus_title"
+            android:summary="@string/pref_drawer_search_autofocus_summary"
+            android:persistent="true"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

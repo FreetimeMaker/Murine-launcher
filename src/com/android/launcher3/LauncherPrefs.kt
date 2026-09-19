@@ -315,6 +315,8 @@ constructor(@ApplicationContext private val encryptedContext: Context) {
         @JvmField
         val DRAWER_PADDING = backedUpItem(SettingsDrawerFragment.DRAWER_PADDING, 100)
         @JvmField
+        val DRAWER_SEARCH_AUTOFOCUS = backedUpItem(SettingsDrawerFragment.SEARCH_AUTOFOCUS, false)
+        @JvmField
         val ICON_SIZE = backedUpItem(SettingsIconsFragment.ICON_SIZE_KEY, 100)
         @JvmField
         val ICON_LABEL_SIZE = backedUpItem(SettingsIconsFragment.ICON_LABEL_SIZE_KEY, 100)
