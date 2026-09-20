@@ -9,40 +9,14 @@
 -verbose
 -keepattributes InnerClasses, EnclosingMethod, *Annotation*, Signature, SourceFile, LineNumberTable
 
-
-# This is generated automatically by the Android Gradle plugin.
--dontwarn android.appwidget.AppWidgetHost$AppWidgetHostListener
--dontwarn android.util.StatsEvent$Builder
--dontwarn android.util.StatsEvent
--dontwarn androidx.window.extensions.**
--dontwarn androidx.window.sidecar.**
--dontwarn com.android.org.conscrypt.TrustManagerImpl
--dontwarn com.android.wm.shell.**
--dontwarn com.skydoves.balloon.**
--dontwarn dalvik.system.CloseGuard
--dontwarn lineageos.providers.LineageSettings$System
--dontwarn androidx.compose.runtime.PrimitiveSnapshotStateKt
--dontwarn androidx.renderscript.Allocation
--dontwarn androidx.renderscript.BaseObj
--dontwarn androidx.renderscript.Element
--dontwarn androidx.renderscript.FieldPacker
--dontwarn androidx.renderscript.RSRuntimeException
--dontwarn androidx.renderscript.RenderScript
--dontwarn androidx.renderscript.Script$LaunchOptions
--dontwarn androidx.renderscript.ScriptC
--dontwarn androidx.renderscript.ScriptIntrinsicBlur
--dontwarn androidx.renderscript.Type
-
-# Custom rules
--dontwarn android.compat.annotation.UnsupportedAppUsage
--dontwarn com.android.systemui.animation.R$id
--dontwarn com.android.systemui.animation.R$style
-
-
+# Remove some Kotlin overhead
+-processkotlinnullchecks remove
 
 # Common rules.
--keep class com.android.** { *; }
+##-keep class com.android.** { *; }
 -keep class android.window.** { *; }
+-keep class android.view.** { *; }
+
 -keepclasseswithmembernames class * {
     native <methods>;
 }
@@ -59,9 +33,10 @@
 #-keep class app.lawnchair.LawnchairApp { *; }
 #-keep class app.lawnchair.LawnchairLauncher { *; }
 #-keep class app.lawnchair.compatlib.** { *; }
--keep class android.view.** { *; }
 
--keep class com.google.protobuf.Timestamp { *; }
+-keep,allowshrinking,allowoptimization class com.google.protobuf.Timestamp { *; }
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { <fields>; }
 
 # TODO: Remove this after the change in https://github.com/ChickenHook/RestrictionBypass/pull/9 has been released.
+# UPDATE: not needed anyway after changing chickenhook.restrictionbypass to lsposed.hiddenapibypass
 -keep class org.chickenhook.restrictionbypass.** { *; }
