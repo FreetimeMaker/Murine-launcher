@@ -365,6 +365,7 @@ dependencies {
     implementation project(':SettingsLib:ExpandablePreference')
     implementation project(':SettingsLib:SegmentedButtonPreference')
     implementation project(':SettingsLib:MainSwitchPreference')
+    //implementation project(':SettingsLib:ProgressBar')
     //implementation project(':SettingsLib:TopIntroPreference')
     //implementation project(':SettingsLib:FooterPreference')
     withQuickstepCompileOnly project(':hidden-api')
