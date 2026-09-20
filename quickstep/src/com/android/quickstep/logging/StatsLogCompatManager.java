@@ -51,7 +51,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
-import androidx.slice.SliceItem;
+//import androidx.slice.SliceItem;
 
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.LauncherAppState;
@@ -233,7 +233,7 @@ public class StatsLogCompatManager extends StatsLogManager {
         private Optional<FromState> mFromState = Optional.empty();
         private Optional<ToState> mToState = Optional.empty();
         private Optional<String> mEditText = Optional.empty();
-        private SliceItem mSliceItem;
+        //private SliceItem mSliceItem;
         private LauncherAtom.Slice mSlice;
         private Optional<Integer> mCardinality = Optional.empty();
         private int mInputType = SysUiStatsLog.LAUNCHER_UICHANGED__INPUT_TYPE__UNKNOWN;
@@ -310,18 +310,18 @@ public class StatsLogCompatManager extends StatsLogManager {
             return this;
         }
 
-        @Override
+        /*@Override
         public StatsLogger withSliceItem(@NonNull SliceItem sliceItem) {
             checkState(mItemInfo == DEFAULT_ITEM_INFO && mSlice == null,
                     "ItemInfo, Slice and SliceItem are mutual exclusive; cannot set more than one"
                             + " of them.");
             this.mSliceItem = checkNotNull(sliceItem, "expected valid sliceItem but received null");
             return this;
-        }
+        }*/
 
         @Override
         public StatsLogger withSlice(LauncherAtom.Slice slice) {
-            checkState(mItemInfo == DEFAULT_ITEM_INFO && mSliceItem == null,
+            checkState(mItemInfo == DEFAULT_ITEM_INFO /*&& mSliceItem == null*/,
                     "ItemInfo, Slice and SliceItem are mutual exclusive; cannot set more than one"
                             + " of them.");
             checkNotNull(slice, "expected valid slice but received null");
@@ -362,10 +362,10 @@ public class StatsLogCompatManager extends StatsLogManager {
                 Log.d(TAG, name);
             }
 
-            if (mSlice == null && mSliceItem != null) {
+            /*if (mSlice == null && mSliceItem != null) {
                 mSlice = LauncherAtom.Slice.newBuilder().setUri(
                         mSliceItem.getSlice().getUri().toString()).build();
-            }
+            }*/
 
             if (mSlice != null) {
                 Executors.MODEL_EXECUTOR.execute(

@@ -317,7 +317,7 @@ dependencies {
     implementation libs.androidx.recyclerview
     implementation libs.androidx.dynamicanimation
     implementation libs.androidx.preference
-    implementation libs.androidx.slice.builders
+    //implementation libs.androidx.slice.builders
     implementation libs.androidx.graphics.shapes
     implementation libs.androidx.window
     implementation libs.androidx.core.animation

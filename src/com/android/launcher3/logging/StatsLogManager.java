@@ -25,7 +25,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.slice.SliceItem;
+//import androidx.slice.SliceItem;
 
 import com.android.launcher3.R;
 import com.android.launcher3.logger.LauncherAtom;
@@ -1042,12 +1042,12 @@ public class StatsLogManager implements ResourceBasedOverride {
             return this;
         }
 
-        /**
+        /*
          * Sets logging fields from provided {@link SliceItem}.
          */
-        default StatsLogger withSliceItem(SliceItem sliceItem) {
+        /*default StatsLogger withSliceItem(SliceItem sliceItem) {
             return this;
-        }
+        }*/
 
         /**
          * Sets logging fields from provided {@link LauncherAtom.Slice}.
