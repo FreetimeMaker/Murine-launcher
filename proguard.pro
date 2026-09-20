@@ -12,6 +12,11 @@
 # Remove some Kotlin overhead
 -processkotlinnullchecks remove
 
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+}
+
 # Common rules.
 ##-keep class com.android.** { *; }
 -keep class android.window.** { *; }
