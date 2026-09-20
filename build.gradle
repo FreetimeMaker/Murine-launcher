@@ -201,6 +201,10 @@ android {
         buildConfig = true
     }
 
+    androidResources {
+        additionalParameters '--no-xml-namespaces'
+    }
+
     packaging {
         resources {
             // Dead weight at runtime, ~53 KB of APK
