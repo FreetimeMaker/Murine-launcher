@@ -31,7 +31,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.PreferenceViewHolder;
 
-import com.android.settingslib.widget.preference.selector.R;
 
 /**
  * Selector preference (checkbox or radio button) with an optional additional widget.
@@ -159,11 +158,11 @@ public class SelectorWithWidgetPreference extends CheckBoxPreference {
     public void onBindViewHolder(PreferenceViewHolder holder) {
         super.onBindViewHolder(holder);
 
-        View summaryContainer = holder.findViewById(R.id.summary_container);
+        View summaryContainer = holder.findViewById(R.id.selector_summary_container);
         if (summaryContainer != null) {
             summaryContainer.setVisibility(
                     TextUtils.isEmpty(getSummary()) ? View.GONE : View.VISIBLE);
-            mAppendix = holder.findViewById(R.id.appendix);
+            mAppendix = holder.findViewById(R.id.selector_appendix);
             if (mAppendix != null && mAppendixVisibility != -1) {
                 mAppendix.setVisibility(mAppendixVisibility);
             }

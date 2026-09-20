@@ -37,7 +37,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
-import com.android.settingslib.widget.preference.footer.R;
 
 import java.net.URISyntaxException;
 

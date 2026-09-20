@@ -20,7 +20,6 @@ import android.util.AttributeSet
 import android.widget.ProgressBar
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
-import com.android.settingslib.widget.progressbar.R
 
 /**
  * The SimpleProgressBarPreference shows a progress style preference. Support to show the progress

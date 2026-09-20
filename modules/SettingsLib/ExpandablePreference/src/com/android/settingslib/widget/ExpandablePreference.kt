@@ -22,7 +22,6 @@ import android.widget.ImageView
 import androidx.preference.Preference
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceViewHolder
-import com.android.settingslib.widget.preference.expandable.R
 
 class ExpandablePreference @JvmOverloads constructor(
     context: Context,
@@ -51,7 +50,7 @@ class ExpandablePreference @JvmOverloads constructor(
         holder.isDividerAllowedAbove = false
         holder.isDividerAllowedBelow = false
 
-        expandIcon = holder.findViewById(R.id.expand_icon) as ImageView?
+        expandIcon = holder.findViewById(R.id.expandable_expand_icon) as ImageView?
 
         updateExpandedState()
 

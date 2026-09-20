@@ -248,7 +248,7 @@ public class CustomSeekBarPreference extends SliderPreference {
         }
 
         final View labelFrame = holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.label_frame);
+                com.android.settingslib.widget.R.id.slider_label_frame);
         final TextView startText = (TextView) holder.findViewById(android.R.id.text1);
         final TextView endText = (TextView) holder.findViewById(android.R.id.text2);
 
@@ -263,17 +263,17 @@ public class CustomSeekBarPreference extends SliderPreference {
         }
 
         ViewGroup minusFrame = (ViewGroup) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_start_frame);
+                com.android.settingslib.widget.R.id.slider_icon_start_frame);
         ImageView minusIcon = (ImageView) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_start);
+                com.android.settingslib.widget.R.id.slider_icon_start);
 
         ViewGroup plusFrame = (ViewGroup) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_end_frame);
+                com.android.settingslib.widget.R.id.slider_icon_end_frame);
         ImageView plusIcon = (ImageView) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_end);
+                com.android.settingslib.widget.R.id.slider_icon_end);
 
         final Slider slider = (Slider) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.slider);
+                com.android.settingslib.widget.R.id.slider);
 
         if (slider != null && mShowIncrementButtons) slider.setOnTouchListener(new View.OnTouchListener() {
             private boolean mIgnoreGesture = false;
@@ -384,13 +384,13 @@ public class CustomSeekBarPreference extends SliderPreference {
 
     private void updatePlusMinusEnabledStates(PreferenceViewHolder holder) {
         View minusFrame = holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_start_frame);
+                com.android.settingslib.widget.R.id.slider_icon_start_frame);
         ImageView minusIcon = (ImageView) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_start);
+                com.android.settingslib.widget.R.id.slider_icon_start);
         View plusFrame = holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_end_frame);
+                com.android.settingslib.widget.R.id.slider_icon_end_frame);
         ImageView plusIcon = (ImageView) holder.findViewById(
-                com.android.settingslib.widget.preference.slider.R.id.icon_end);
+                com.android.settingslib.widget.R.id.slider_icon_end);
         boolean enabled = isEnabled();
         int value = getValue();
 
@@ -480,7 +480,7 @@ public class CustomSeekBarPreference extends SliderPreference {
                 int trackWidth = slider.getTrackWidth();
                 float thumbVal = slider.getValue();
                 float radius = slider.getResources().getDimensionPixelSize(
-                        com.android.settingslib.widget.preference.slider.R.dimen
+                        com.android.settingslib.widget.R.dimen
                                 .settingslib_expressive_slider_tick_radius);
                 float cy = slider.getHeight() / 2f;
 

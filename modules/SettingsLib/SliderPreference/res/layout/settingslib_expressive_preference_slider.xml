@@ -67,7 +67,7 @@
             android:layout_below="@android:id/summary" />
 
         <LinearLayout
-            android:id="@+id/label_frame"
+            android:id="@+id/slider_label_frame"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/slider_frame"

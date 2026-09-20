@@ -360,14 +360,7 @@ dependencies {
     implementation project(':flagslib')
     implementation project(':wm_shared')
     implementation project(':SettingsLib:SettingsTheme')
-    implementation project(':SettingsLib:SliderPreference')
-    implementation project(':SettingsLib:SelectorWithWidgetPreference')
-    implementation project(':SettingsLib:ExpandablePreference')
-    implementation project(':SettingsLib:SegmentedButtonPreference')
-    implementation project(':SettingsLib:MainSwitchPreference')
-    //implementation project(':SettingsLib:ProgressBar')
-    //implementation project(':SettingsLib:TopIntroPreference')
-    //implementation project(':SettingsLib:FooterPreference')
+    implementation project(':SettingsLib:Widgets') // All SettingsLib widget preferences in one library
     withQuickstepCompileOnly project(':hidden-api')
 
     // Include all compat libs

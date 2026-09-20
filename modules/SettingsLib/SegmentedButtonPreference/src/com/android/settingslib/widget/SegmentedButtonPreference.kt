@@ -25,7 +25,6 @@ import androidx.annotation.DrawableRes
 import androidx.core.view.isGone
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
-import com.android.settingslib.widget.preference.segmentedbutton.R
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 
@@ -57,11 +56,11 @@ class SegmentedButtonPreference @JvmOverloads constructor(
         holder.isDividerAllowedBelow = false
         holder.isDividerAllowedAbove = false
 
-        buttonGroup = holder.findViewById(R.id.button_group) as MaterialButtonToggleGroup?
-        buttonLabels.add(0, holder.findViewById(R.id.button_1_text) as TextView)
-        buttonLabels.add(1, holder.findViewById(R.id.button_2_text) as TextView)
-        buttonLabels.add(2, holder.findViewById(R.id.button_3_text) as TextView)
-        buttonLabels.add(3, holder.findViewById(R.id.button_4_text) as TextView)
+        buttonGroup = holder.findViewById(R.id.segmented_button_group) as MaterialButtonToggleGroup?
+        buttonLabels.add(0, holder.findViewById(R.id.segmented_button_1_text) as TextView)
+        buttonLabels.add(1, holder.findViewById(R.id.segmented_button_2_text) as TextView)
+        buttonLabels.add(2, holder.findViewById(R.id.segmented_button_3_text) as TextView)
+        buttonLabels.add(3, holder.findViewById(R.id.segmented_button_4_text) as TextView)
 
         // Apply stored data
         applyButtonSetupData()

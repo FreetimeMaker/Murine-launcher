@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.library'
+}
+
+// One library for all SettingsLib widget preferences;
+// Merging submodules into a single library reduces resources.arsc bloat;
+// One shared R, so some bare ids gained a widget prefix (frame -> main_switch_frame, ...);
+// Keep the list below in sync with the folders.
+def widgetModules = [
+        'ExpandablePreference',
+        'FooterPreference',
+        'MainSwitchPreference',
+        'ProgressBar',
+        'SegmentedButtonPreference',
+        'SelectorWithWidgetPreference',
+        'SliderPreference',
+        'TopIntroPreference',
+]
+
+android {
+    // Same as the sources' package, so they reach R without an import.
+    namespace = "com.android.settingslib.widget"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 26
+    }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDirs(widgetModules.collect { "../$it/src".toString() })
+            kotlin.directories.addAll(widgetModules.collect { "../$it/src".toString() })
+            res.srcDirs(widgetModules.collect { "../$it/res".toString() })
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+dependencies {
+    api project(':SettingsLib:Preference')
+    api project(':SettingsLib:SettingsTheme')
+    implementation(libs.androidx.preference)
+}

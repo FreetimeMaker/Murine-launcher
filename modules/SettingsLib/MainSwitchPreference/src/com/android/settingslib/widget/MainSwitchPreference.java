@@ -27,7 +27,6 @@ import androidx.annotation.Nullable;
 import androidx.preference.PreferenceViewHolder;
 import androidx.preference.TwoStatePreference;
 
-import com.android.settingslib.widget.mainswitch.R;
 
 import java.util.ArrayList;
 import java.util.List;

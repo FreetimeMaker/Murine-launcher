@@ -40,7 +40,6 @@ import androidx.annotation.StringRes;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
-import com.android.settingslib.widget.preference.slider.R;
 
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
@@ -402,16 +401,16 @@ public class SliderPreference extends Preference {
             endText.setText(mTextEndId);
         }
 
-        View labelFrame = holder.findViewById(R.id.label_frame);
+        View labelFrame = holder.findViewById(R.id.slider_label_frame);
         if (labelFrame != null) {
             boolean isValidTextResIdExist = mTextStartId > 0 || mTextEndId > 0;
             labelFrame.setVisibility(isValidTextResIdExist ? View.VISIBLE : View.GONE);
         }
 
-        ImageView iconStartView = (ImageView) holder.findViewById(R.id.icon_start);
+        ImageView iconStartView = (ImageView) holder.findViewById(R.id.slider_icon_start);
         updateIconStartIfNeeded(iconStartView);
 
-        ImageView iconEndView = (ImageView) holder.findViewById(R.id.icon_end);
+        ImageView iconEndView = (ImageView) holder.findViewById(R.id.slider_icon_end);
         updateIconEndIfNeeded(iconEndView);
     }
 

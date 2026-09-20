@@ -22,7 +22,6 @@ import android.text.style.ClickableSpan;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import com.android.settingslib.widget.preference.footer.R;
 
 /**
  * Copied from setup wizard. This TextView performed two functions. The first is to make it so the

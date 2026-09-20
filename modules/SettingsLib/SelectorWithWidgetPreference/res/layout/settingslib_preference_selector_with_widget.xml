@@ -43,7 +43,7 @@
             style="?expressiveSelectorWithWidgetPreferenceTitleStyle" />
 
         <LinearLayout
-            android:id="@+id/summary_container"
+            android:id="@+id/selector_summary_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="?expressiveSelectorWithWidgetPreferenceSummaryContainerStyle">
@@ -56,7 +56,7 @@
                 style="?expressiveSelectorWithWidgetPreferenceSummaryStyle" />
 
             <TextView
-                android:id="@+id/appendix"
+                android:id="@+id/selector_appendix"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

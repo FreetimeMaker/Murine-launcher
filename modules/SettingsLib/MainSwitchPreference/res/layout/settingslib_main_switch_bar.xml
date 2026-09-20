@@ -27,7 +27,7 @@
     android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/frame"
+        android:id="@+id/main_switch_frame"
         android:minHeight="@dimen/settingslib_min_switch_bar_height"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
@@ -36,7 +36,7 @@
         android:background="@drawable/settingslib_switch_bar_bg">
 
         <TextView
-            android:id="@+id/switch_text"
+            android:id="@+id/main_switch_text"
             android:layout_height="wrap_content"
             android:layout_width="0dp"
             android:layout_weight="1"

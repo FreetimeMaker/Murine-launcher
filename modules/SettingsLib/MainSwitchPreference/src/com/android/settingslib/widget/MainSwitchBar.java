@@ -35,7 +35,6 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.android.settingslib.widget.mainswitch.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,10 +85,10 @@ public class MainSwitchBar extends LinearLayout implements OnCheckedChangeListen
         setFocusable(true);
         setClickable(true);
 
-        mFrameView = findViewById(R.id.frame);
-        mTextView = findViewById(R.id.switch_text);
+        mFrameView = findViewById(R.id.main_switch_frame);
+        mTextView = findViewById(R.id.main_switch_text);
         if (isExpressive) {
-            mSummaryView = findViewById(R.id.switch_summary);
+            mSummaryView = findViewById(R.id.main_switch_summary);
         }
         mSwitch = findViewById(android.R.id.switch_widget);
         addOnSwitchChangeListener((switchView, isChecked) -> setChecked(isChecked));
