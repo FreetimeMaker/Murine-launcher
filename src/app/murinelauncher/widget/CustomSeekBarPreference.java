@@ -47,8 +47,6 @@ import com.google.android.material.slider.Slider;
 
 public class CustomSeekBarPreference extends SliderPreference {
 
-    private static final String SETTINGS_NS = "http://schemas.android.com/apk/res/com.android.settings";
-    private static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
 
     private boolean mShowSign;
     @Nullable
@@ -112,24 +110,7 @@ public class CustomSeekBarPreference extends SliderPreference {
                     R.styleable.CustomSeekBarPreference_defaultValueText);
             mDefaultValueTextExists = mDefaultValueText != null && !mDefaultValueText.isEmpty();
 
-            String defaultValue = attrs.getAttributeValue(ANDROIDNS, "defaultValue");
-            if (defaultValue == null) {
-                defaultValue = attrs.getAttributeValue(SETTINGS_NS, "defaultValue");
-            }
-            if (defaultValue != null && !defaultValue.isEmpty()) {
-                try {
-                    mDefaultValue = Integer.parseInt(defaultValue);
-                    mDefaultValueExists = true;
-                } catch (NumberFormatException ignored) {
-                    mDefaultValueExists = false;
-                }
-            }
-
-            // Explicitly read android:min if not handled by parent correctly
-            int minAttr = attrs.getAttributeIntValue(ANDROIDNS, "min", -1);
-            if (minAttr == -1) {
-                minAttr = attrs.getAttributeIntValue(SETTINGS_NS, "min", -1);
-            }
+            int minAttr = a.getInt(R.styleable.CustomSeekBarPreference_android_min, -1);
             if (minAttr != -1) setMin(minAttr);
 
             // Guard against improper slider increment
@@ -138,12 +119,6 @@ public class CustomSeekBarPreference extends SliderPreference {
             int span = Math.max(0, max - min);
 
             int interval = a.getInt(R.styleable.CustomSeekBarPreference_interval, 0);
-            if (interval <= 0) {
-                interval = attrs.getAttributeIntValue(SETTINGS_NS, "interval", 0);
-            }
-            if (interval <= 0) {
-                interval = attrs.getAttributeIntValue(ANDROIDNS, "interval", 0);
-            }
             if (interval > 0) setSliderIncrement(interval);
             int actualInterval = Math.max(1, interval);
 
@@ -216,6 +191,16 @@ public class CustomSeekBarPreference extends SliderPreference {
         final String valueText = formatValueForSummary(v);
         if (userSummary == null || userSummary.length() == 0) return valueText;
         return valueText + " \u2022 " + userSummary;
+    }
+
+    @Override
+    protected Object onGetDefaultValue(TypedArray a, int index) {
+        Object value = super.onGetDefaultValue(a, index);
+        if (value instanceof Integer) {
+            mDefaultValue = (Integer) value;
+            mDefaultValueExists = true;
+        }
+        return value;
     }
 
     @Override
